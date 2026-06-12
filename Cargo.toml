@@ -1,0 +1,19 @@
+[package]
+name = "plt2dxf"
+version = "0.3.0"
+edition = "2024"
+description = "Conversor multiplataforma entre HP-GL/HP-GL2, DXF e SVG"
+license = "MIT"
+
+[lib]
+name = "plt2dxf"
+path = "src/lib.rs"
+
+[[bin]]
+name = "plt2dxf"
+path = "src/main.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
