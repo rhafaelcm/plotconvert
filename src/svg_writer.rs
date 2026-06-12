@@ -40,7 +40,7 @@ fn write_entity(output: &mut String, drawing: &Drawing, entity: &Entity) {
     }
     let width = style.and_then(|style| style.width_mm).unwrap_or(0.25);
     let attributes = format!(
-        r##"stroke="#{:02x}{:02x}{:02x}" stroke-width="{}" data-pen="{}""##,
+        r##"stroke="#{:02x}{:02x}{:02x}" stroke-width="{}" vector-effect="non-scaling-stroke" data-pen="{}""##,
         color.0,
         color.1,
         color.2,
