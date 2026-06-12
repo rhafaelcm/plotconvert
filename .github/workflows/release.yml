@@ -13,12 +13,12 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            artifact: plt2dxf-linux-x86_64
-            binary: target/x86_64-unknown-linux-gnu/release/plt2dxf
+            artifact: plotconvert-linux-x86_64
+            binary: target/x86_64-unknown-linux-gnu/release/plotconvert
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact: plt2dxf-windows-x86_64
-            binary: target/x86_64-pc-windows-msvc/release/plt2dxf.exe
+            artifact: plotconvert-windows-x86_64
+            binary: target/x86_64-pc-windows-msvc/release/plotconvert.exe
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

@@ -1,4 +1,4 @@
-# plt2dxf
+# plotconvert
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -15,12 +15,12 @@ Conversões disponíveis:
 ## Uso
 
 ```bash
-plt2dxf desenho.plt
-plt2dxf desenho.dxf
-plt2dxf desenho.svg
-plt2dxf --to svg desenho.dxf
-plt2dxf --to plt desenho.svg
-plt2dxf --to hpgl desenho.dxf
+plotconvert desenho.plt
+plotconvert desenho.dxf
+plotconvert desenho.svg
+plotconvert --to svg desenho.dxf
+plotconvert --to plt desenho.svg
+plotconvert --to hpgl desenho.dxf
 ```
 
 O formato da entrada é detectado pela extensão e, quando necessário, pelo
@@ -36,7 +36,7 @@ para escolher outra combinação.
 Sem `--output` ou `--output-dir`, o arquivo convertido é criado ao lado da
 entrada, com o mesmo nome-base e a nova extensão.
 
-Execute `plt2dxf --help` para consultar todas as opções.
+Execute `plotconvert --help` para consultar todas as opções.
 
 ## Parâmetros
 
@@ -55,19 +55,19 @@ Valores aceitos:
 
 ```bash
 # DXF para SVG
-plt2dxf --to svg desenho.dxf
+plotconvert --to svg desenho.dxf
 
 # DXF para PLT HP-GL/2
-plt2dxf --to plt desenho.dxf
+plotconvert --to plt desenho.dxf
 
 # PLT para SVG
-plt2dxf --to svg desenho.plt
+plotconvert --to svg desenho.plt
 
 # SVG para DXF
-plt2dxf --to dxf desenho.svg
+plotconvert --to dxf desenho.svg
 
 # SVG para HP-GL clássico
-plt2dxf --to hpgl desenho.svg
+plotconvert --to hpgl desenho.svg
 ```
 
 Quando `--to` é usado, ele tem prioridade sobre a extensão informada em
@@ -80,10 +80,10 @@ uma única entrada. Quando `--to` não é informado, a extensão da saída escol
 o formato.
 
 ```bash
-plt2dxf desenho.plt --output resultado.dxf
-plt2dxf desenho.dxf -o resultado.plt
-plt2dxf desenho.dxf -o resultado.svg
-plt2dxf desenho.svg -o resultado.dxf
+plotconvert desenho.plt --output resultado.dxf
+plotconvert desenho.dxf -o resultado.plt
+plotconvert desenho.dxf -o resultado.svg
+plotconvert desenho.svg -o resultado.dxf
 ```
 
 Não pode ser combinado com `--output-dir`.
@@ -94,7 +94,7 @@ Define o diretório de destino. Pode ser usado com uma ou várias entradas e o
 diretório é criado automaticamente quando não existe.
 
 ```bash
-plt2dxf --to svg --output-dir convertidos molde.plt desenho.dxf
+plotconvert --to svg --output-dir convertidos molde.plt desenho.dxf
 ```
 
 Cada saída mantém o nome-base da entrada. Por exemplo, `molde.plt` gera
@@ -115,11 +115,11 @@ Valores aceitos:
 
 ```bash
 # Saída HP-GL/2, comportamento padrão
-plt2dxf desenho.dxf
-plt2dxf --plt-dialect hpgl2 desenho.dxf
+plotconvert desenho.dxf
+plotconvert --plt-dialect hpgl2 desenho.dxf
 
 # Saída HP-GL clássica
-plt2dxf --plt-dialect hpgl desenho.dxf
+plotconvert --plt-dialect hpgl desenho.dxf
 ```
 
 Essa opção não altera conversões cuja entrada seja PLT, nem saídas DXF ou SVG.
@@ -134,8 +134,8 @@ PLT, multiplica as coordenadas em milímetros por esse valor. Não altera
 diretamente a escala de DXF para SVG ou SVG para DXF.
 
 ```bash
-plt2dxf --units-per-mm 40 desenho.plt
-plt2dxf --units-per-mm 100 desenho.dxf
+plotconvert --units-per-mm 40 desenho.plt
+plotconvert --units-per-mm 100 desenho.dxf
 ```
 
 O valor deve ser maior que zero. Normalmente não é necessário alterá-lo.
@@ -150,10 +150,10 @@ círculos/arcos submetidos a transformações não uniformes.
 
 ```bash
 # Mais precisão e arquivos potencialmente maiores
-plt2dxf --curve-tolerance-mm 0.01 desenho.dxf
+plotconvert --curve-tolerance-mm 0.01 desenho.dxf
 
 # Menos pontos e arquivos menores
-plt2dxf --curve-tolerance-mm 0.2 desenho.dxf
+plotconvert --curve-tolerance-mm 0.2 desenho.dxf
 ```
 
 Valores menores geram mais segmentos. O valor deve ser maior que zero.
@@ -164,7 +164,7 @@ Move toda a geometria para que o menor X e o menor Y sejam `0,0`, preservando
 as dimensões do desenho.
 
 ```bash
-plt2dxf --normalize-origin desenho.dxf
+plotconvert --normalize-origin desenho.dxf
 ```
 
 É útil para máquinas ou programas que não trabalham bem com coordenadas
@@ -175,8 +175,8 @@ negativas ou desenhos afastados da origem.
 Inverte o sinal do eixo Y antes de gerar a saída.
 
 ```bash
-plt2dxf --flip-y desenho.plt
-plt2dxf --flip-y --normalize-origin desenho.dxf
+plotconvert --flip-y desenho.plt
+plotconvert --flip-y --normalize-origin desenho.dxf
 ```
 
 Quando combinado com `--normalize-origin`, a inversão é aplicada primeiro e a
@@ -188,7 +188,7 @@ Aplica-se a qualquer conversão com saída DXF. Coloca todas as entidades na
 camada `0`.
 
 ```bash
-plt2dxf --single-layer desenho.plt
+plotconvert --single-layer desenho.plt
 ```
 
 Sem essa opção, cada caneta ou estilo de traço é exportado para uma camada:
@@ -200,7 +200,7 @@ Interrompe a conversão ao encontrar um comando HP-GL, entidade DXF ou elemento
 SVG não suportado ou malformado.
 
 ```bash
-plt2dxf --strict desenho.dxf
+plotconvert --strict desenho.dxf
 ```
 
 Sem essa opção, o conversor continua processando o restante do arquivo e
@@ -212,8 +212,8 @@ de `HATCH` são ignorados com aviso.
 Permite substituir arquivos de saída existentes.
 
 ```bash
-plt2dxf --overwrite desenho.plt
-plt2dxf --to svg --output-dir convertidos --overwrite *.dxf
+plotconvert --overwrite desenho.plt
+plotconvert --to svg --output-dir convertidos --overwrite *.dxf
 ```
 
 Sem essa opção, uma saída existente não é alterada e essa conversão é
@@ -224,7 +224,7 @@ reportada como erro.
 Mostra a ajuda resumida da linha de comando.
 
 ```bash
-plt2dxf --help
+plotconvert --help
 ```
 
 ### `-V, --version`
@@ -232,7 +232,7 @@ plt2dxf --help
 Mostra a versão do conversor.
 
 ```bash
-plt2dxf --version
+plotconvert --version
 ```
 
 ### `--`
@@ -241,7 +241,7 @@ Encerra o processamento de opções. É necessário para converter um arquivo
 cujo nome começa com hífen.
 
 ```bash
-plt2dxf -- -desenho.plt
+plotconvert -- -desenho.plt
 ```
 
 ## Exemplos
@@ -249,63 +249,63 @@ plt2dxf -- -desenho.plt
 Converter um PLT para DXF R12:
 
 ```bash
-plt2dxf molde.plt
+plotconvert molde.plt
 ```
 
 Converter um DXF para HP-GL/2:
 
 ```bash
-plt2dxf molde.dxf
-plt2dxf --to hpgl2 molde.dxf
+plotconvert molde.dxf
+plotconvert --to hpgl2 molde.dxf
 ```
 
 Converter um DXF para HP-GL clássico:
 
 ```bash
-plt2dxf --plt-dialect hpgl molde.dxf
+plotconvert --plt-dialect hpgl molde.dxf
 ```
 
 Converter vários arquivos, inclusive em direções diferentes:
 
 ```bash
-plt2dxf --to svg --output-dir convertidos molde.plt desenho.dxf bolso.dxf
+plotconvert --to svg --output-dir convertidos molde.plt desenho.dxf bolso.dxf
 ```
 
 Normalizar a origem, inverter Y e substituir uma saída existente:
 
 ```bash
-plt2dxf --normalize-origin --flip-y --overwrite molde.dxf
+plotconvert --normalize-origin --flip-y --overwrite molde.dxf
 ```
 
 Gerar um DXF simples, sem camadas por caneta:
 
 ```bash
-plt2dxf --single-layer molde.plt
+plotconvert --single-layer molde.plt
 ```
 
 Converter DXF para SVG:
 
 ```bash
-plt2dxf --to svg molde.dxf
+plotconvert --to svg molde.dxf
 ```
 
 Converter PLT para SVG:
 
 ```bash
-plt2dxf --to svg molde.plt
+plotconvert --to svg molde.plt
 ```
 
 Converter SVG para DXF:
 
 ```bash
-plt2dxf --to dxf desenho.svg
+plotconvert --to dxf desenho.svg
 ```
 
 Converter SVG ou um arquivo com extensão `.svf` para PLT:
 
 ```bash
-plt2dxf --to plt desenho.svg
-plt2dxf --to hpgl desenho.svf
+plotconvert --to plt desenho.svg
+plotconvert --to hpgl desenho.svf
 ```
 
 ## Conversão DXF para PLT
@@ -377,15 +377,15 @@ cargo build --release
 cargo test
 ```
 
-O binário Linux será criado em `target/release/plt2dxf`. Para Windows,
+O binário Linux será criado em `target/release/plotconvert`. Para Windows,
 compile o mesmo projeto para o alvo `x86_64-pc-windows-gnu` ou use o
 workflow de release.
 
 Os artefatos prontos são gerados em:
 
 ```text
-dist/plt2dxf-linux-x86_64
-dist/plt2dxf-windows-x86_64.exe
+dist/plotconvert-linux-x86_64
+dist/plotconvert-windows-x86_64.exe
 ```
 
 ## Licença

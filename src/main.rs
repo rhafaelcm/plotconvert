@@ -4,16 +4,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use plt2dxf::{
+use plotconvert::{
     ConversionOptions, OutputFormat, PltDialect, convert_file_to, default_output, detect_format,
     output_format_from_path,
 };
 
 const HELP: &str = "\
-plt2dxf - converte entre PLT/HP-GL, DXF e SVG
+plotconvert - converte entre PLT/HP-GL, DXF e SVG
 
 USO:
-    plt2dxf [OPCOES] <ARQUIVO.plt|ARQUIVO.dxf|ARQUIVO.svg>...
+    plotconvert [OPCOES] <ARQUIVO.plt|ARQUIVO.dxf|ARQUIVO.svg>...
 
 OPCOES:
     -o, --output <ARQUIVO>          Saida para uma unica entrada
@@ -124,7 +124,7 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
                 std::process::exit(0);
             }
             "-V" | "--version" => {
-                println!("plt2dxf {}", env!("CARGO_PKG_VERSION"));
+                println!("plotconvert {}", env!("CARGO_PKG_VERSION"));
                 std::process::exit(0);
             }
             "-o" | "--output" => {

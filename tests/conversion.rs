@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use plt2dxf::{
+use plotconvert::{
     ConversionOptions, InputFormat, OutputFormat, PltDialect, convert_between_bytes, convert_bytes,
     convert_dxf_bytes, convert_svg_bytes,
 };

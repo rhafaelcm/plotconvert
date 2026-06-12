@@ -1,16 +1,16 @@
 [package]
-name = "plt2dxf"
+name = "plotconvert"
 version = "0.3.0"
 edition = "2024"
 description = "Conversor multiplataforma entre HP-GL/HP-GL2, DXF e SVG"
 license = "MIT"
 
 [lib]
-name = "plt2dxf"
+name = "plotconvert"
 path = "src/lib.rs"
 
 [[bin]]
-name = "plt2dxf"
+name = "plotconvert"
 path = "src/main.rs"
 
 [profile.release]

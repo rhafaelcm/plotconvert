@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "plt2dxf"
+name = "plotconvert"
 version = "0.3.0"
