@@ -1,5 +1,7 @@
 # plt2dxf
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Conversor entre HP-GL/HP-GL2 (`.plt`), DXF ASCII e SVG, escrito em Rust.
 
 Conversões disponíveis:
@@ -385,3 +387,7 @@ Os artefatos prontos são gerados em:
 dist/plt2dxf-linux-x86_64
 dist/plt2dxf-windows-x86_64.exe
 ```
+
+## Licença
+
+Este projeto é distribuído sob a licença [MIT](LICENSE).
