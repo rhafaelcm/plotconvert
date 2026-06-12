@@ -1,3 +1,4 @@
-PS800/**
+/PS800/
+/target/
 *.plt
 *.dxf
