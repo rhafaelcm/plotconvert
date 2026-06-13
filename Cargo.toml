@@ -1,6 +1,6 @@
 [package]
 name = "plotconvert"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2024"
 description = "Cross-platform converter between HP-GL/HP-GL2, DXF, and SVG"
 license = "MIT"

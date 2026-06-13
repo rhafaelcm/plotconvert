@@ -596,6 +596,26 @@ dist/plotconvert-linux-x86_64
 dist/plotconvert-windows-x86_64.exe
 ```
 
+## GitHub Releases
+
+Binários prontos para Linux e Windows são publicados automaticamente quando o
+campo `version` em [`Cargo.toml`](Cargo.toml) muda e o commit é enviado para
+`main`.
+
+1. Atualize `version` em `Cargo.toml`.
+2. Faça commit e push para `main`.
+3. O GitHub Actions compila ambas as plataformas e cria o release `vX.Y.Z` se
+   ele ainda não existir.
+4. Baixe os binários na página de [Releases](https://github.com/rhafaelcm/plotconvert/releases)
+   do repositório:
+
+   - `plotconvert-linux-x86_64`
+   - `plotconvert-windows-x86_64.exe`
+
+Também é possível disparar o workflow manualmente na aba Actions
+(`workflow_dispatch`). Se já existir um release para a versão atual, o workflow
+não recompila nem republica.
+
 ## Licença
 
 Este projeto é distribuído sob a licença [MIT](LICENSE).
