@@ -673,6 +673,37 @@ dist/plotconvert-linux-x86_64
 dist/plotconvert-windows-x86_64.exe
 ```
 
+## Instalação (Linux)
+
+Instale o binário compilado em `/usr/bin/plotconvert` para usá-lo em qualquer
+diretório (PATH global). Requer Linux x86_64 e `sudo`.
+
+### Instalação automática (recomendada)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rhafaelcm/plotconvert/main/install-linux.sh | sudo bash
+```
+
+Ou, a partir de um clone do repositório:
+
+```bash
+sudo ./install-linux.sh
+```
+
+O script baixa a última release do GitHub e instala ou atualiza
+`/usr/bin/plotconvert`.
+
+### Instalação manual
+
+1. Baixe [`plotconvert-linux-x86_64`](https://github.com/rhafaelcm/plotconvert/releases/latest/download/plotconvert-linux-x86_64) na [última release](https://github.com/rhafaelcm/plotconvert/releases/latest).
+2. Copie para `/usr/bin/` com o nome `plotconvert`:
+
+```bash
+sudo cp plotconvert-linux-x86_64 /usr/bin/plotconvert
+sudo chmod +x /usr/bin/plotconvert
+plotconvert --version
+```
+
 ## GitHub Releases
 
 Binários prontos para Linux e Windows são publicados automaticamente quando o
@@ -688,6 +719,8 @@ campo `version` em [`Cargo.toml`](Cargo.toml) muda e o commit é enviado para
 
    - `plotconvert-linux-x86_64`
    - `plotconvert-windows-x86_64.exe`
+
+No Linux, use o [`install-linux.sh`](install-linux.sh) ou siga **Instalação (Linux)** acima para colocar o binário em `/usr/bin/plotconvert`.
 
 Também é possível disparar o workflow manualmente na aba Actions
 (`workflow_dispatch`). Se já existir um release para a versão atual, o workflow
