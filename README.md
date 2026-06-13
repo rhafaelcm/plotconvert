@@ -144,7 +144,7 @@ Essa opção não altera conversões cuja entrada seja PLT, nem saídas DXF ou S
 ### `--units-per-mm <NUMERO>`
 
 Define quantas unidades HP-GL representam um milímetro. O padrão é `40`,
-equivalente a 1.016 unidades por polegada.
+equivalente a `1016` unidades por polegada.
 
 Na leitura de PLT, divide as coordenadas HP-GL por esse valor. Na geração de
 PLT, multiplica as coordenadas em milímetros por esse valor. Não altera
@@ -156,6 +156,28 @@ plotconvert --units-per-mm 100 desenho.dxf
 ```
 
 O valor deve ser maior que zero. Normalmente não é necessário alterá-lo.
+
+Não pode ser combinado com `--units-per-inch`.
+
+### `--units-per-inch <NUMERO>`
+
+Define quantas unidades HP-GL representam uma polegada. O padrão implícito é
+`1016`, equivalente a `--units-per-mm 40`.
+
+Na leitura de PLT, divide as coordenadas HP-GL por `valor / 25.4`. Na geração
+de PLT, multiplica as coordenadas em milímetros por `valor / 25.4`. Não altera
+diretamente a escala de DXF para SVG ou SVG para DXF.
+
+```bash
+plotconvert --units-per-inch 1016 desenho.plt
+plotconvert --units-per-inch 1016 desenho.dxf
+plotconvert --units-per-inch 2032 desenho.plt
+```
+
+O valor deve ser maior que zero. Use esta opção quando a resolução do plotter
+for conhecida em unidades por polegada.
+
+Não pode ser combinado com `--units-per-mm`.
 
 ### `--curve-tolerance-mm <MM>`
 
@@ -380,7 +402,7 @@ extensão `.hpgl` são tratados da mesma forma que `.plt`.
 
 O DXF gerado é ASCII R12 e usa milímetros. Por padrão:
 
-- `40` unidades HP-GL equivalem a `1 mm`;
+- `40` unidades HP-GL equivalem a `1 mm` (`1016` unidades por polegada, padrão);
 - canetas são exportadas como camadas `PEN_001`, `PEN_002`, etc.;
 - cores e larguras de caneta são preservadas quando declaradas;
 - trajetórias viram `POLYLINE`;
@@ -391,8 +413,8 @@ Use `--single-layer` para colocar todas as entidades na camada `0`.
 ### PLT → SVG
 
 As coordenadas HP-GL são convertidas para milímetros conforme
-`--units-per-mm`. O escritor SVG preserva cores, larguras, canetas, textos,
-círculos, arcos e polylines.
+`--units-per-mm` ou `--units-per-inch`. O escritor SVG preserva cores,
+larguras, canetas, textos, círculos, arcos e polylines.
 
 ## Entrada SVG/SVF
 

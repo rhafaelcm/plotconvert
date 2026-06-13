@@ -14,6 +14,9 @@ use std::path::Path;
 
 pub use model::{Bounds, Drawing, Entity, PenStyle, Point};
 
+pub const MM_PER_INCH: f64 = 25.4;
+pub const DEFAULT_HPGL_UNITS_PER_INCH: f64 = 1016.0;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum InputFormat {
     Hpgl,
@@ -59,7 +62,7 @@ pub struct ConversionOptions {
 impl Default for ConversionOptions {
     fn default() -> Self {
         Self {
-            units_per_mm: 40.0,
+            units_per_mm: DEFAULT_HPGL_UNITS_PER_INCH / MM_PER_INCH,
             curve_tolerance_mm: 0.05,
             normalize_origin: false,
             flip_y: false,
@@ -67,6 +70,16 @@ impl Default for ConversionOptions {
             strict: false,
             plt_dialect: PltDialect::Hpgl2,
         }
+    }
+}
+
+impl ConversionOptions {
+    pub fn set_units_per_inch(&mut self, units_per_inch: f64) {
+        self.units_per_mm = units_per_inch / MM_PER_INCH;
+    }
+
+    pub fn units_per_inch(&self) -> f64 {
+        self.units_per_mm * MM_PER_INCH
     }
 }
 
@@ -279,7 +292,8 @@ pub fn default_output(source: InputFormat) -> OutputFormat {
 fn validate_options(options: &ConversionOptions) -> Result<(), ConversionError> {
     if !options.units_per_mm.is_finite() || options.units_per_mm <= 0.0 {
         return Err(ConversionError::InvalidOption(
-            "units-per-mm deve ser maior que zero".into(),
+            "escala HP-GL (--units-per-mm ou --units-per-inch) deve ser maior que zero"
+                .into(),
         ));
     }
     if !options.curve_tolerance_mm.is_finite() || options.curve_tolerance_mm <= 0.0 {

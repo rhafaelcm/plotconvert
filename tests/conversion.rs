@@ -338,6 +338,37 @@ fn honors_dxf_inch_units() {
     assert!(report.bounds.unwrap().max.x >= 5_000.0);
 }
 
+#[test]
+fn units_per_inch_matches_default() {
+    let mut via_inch = ConversionOptions::default();
+    via_inch.set_units_per_inch(1016.0);
+    let (default_plt, _) =
+        convert_dxf_bytes(SAMPLE_DXF.as_bytes(), &ConversionOptions::default()).unwrap();
+    let (inch_plt, _) = convert_dxf_bytes(SAMPLE_DXF.as_bytes(), &via_inch).unwrap();
+    assert_eq!(default_plt, inch_plt);
+    assert!((ConversionOptions::default().units_per_inch() - 1016.0).abs() < 1e-9);
+}
+
+#[test]
+fn units_per_inch_custom_scale() {
+    let mut options = ConversionOptions::default();
+    options.set_units_per_inch(2032.0);
+    let (_, report) = convert_bytes(b"IN;SP1;PU0,0;PD20320,0;", &options).unwrap();
+    let bounds = report.bounds.unwrap();
+    assert!((bounds.max.x - 254.0).abs() < 0.01);
+    assert_eq!(bounds.min.x, 0.0);
+}
+
+#[test]
+fn units_per_inch_roundtrip_preserves_hpgl_coordinates() {
+    let mut options = ConversionOptions::default();
+    options.set_units_per_inch(1016.0);
+    let (dxf, _) = convert_bytes(b"IN;SP1;PU0,0;PD101600,0;", &options).unwrap();
+    let (plt, _) = convert_dxf_bytes(&dxf, &options).unwrap();
+    let text = String::from_utf8(plt).unwrap();
+    assert!(text.contains("PD101600,0"));
+}
+
 const SAMPLE_SVG: &str = r##"<?xml version="1.0"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="100mm" height="80mm"
      viewBox="0 0 100 80">

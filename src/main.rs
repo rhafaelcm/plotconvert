@@ -22,6 +22,7 @@ OPCOES:
         --normalize-origin          Move o menor X/Y para 0,0
         --flip-y                    Inverte o eixo Y
         --units-per-mm <NUMERO>     Unidades HP-GL por mm (padrao: 40)
+        --units-per-inch <NUMERO>   Unidades HP-GL por polegada (padrao: 1016)
         --curve-tolerance-mm <MM>   Tolerancia de curvas (padrao: 0.05)
         --plt-dialect <DIALETO>     Saida para PLT: hpgl2 (padrao) ou hpgl
         --single-layer              Coloca o DXF gerado na camada 0
@@ -114,6 +115,8 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
         options: ConversionOptions::default(),
         ..Cli::default()
     };
+    let mut units_mm_set = false;
+    let mut units_inch_set = false;
     let mut index = 0;
     while index < arguments.len() {
         let argument = &arguments[index];
@@ -156,8 +159,24 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
                 });
             }
             "--units-per-mm" => {
+                if units_inch_set {
+                    return Err(
+                        "--units-per-mm e --units-per-inch nao podem ser usados juntos".into(),
+                    );
+                }
+                units_mm_set = true;
                 index += 1;
                 cli.options.units_per_mm = parse_number(&arguments, index, &text)?;
+            }
+            "--units-per-inch" => {
+                if units_mm_set {
+                    return Err(
+                        "--units-per-mm e --units-per-inch nao podem ser usados juntos".into(),
+                    );
+                }
+                units_inch_set = true;
+                index += 1;
+                cli.options.set_units_per_inch(parse_number(&arguments, index, &text)?);
             }
             "--curve-tolerance-mm" => {
                 index += 1;
