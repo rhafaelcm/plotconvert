@@ -1,0 +1,66 @@
+---
+description: Build Linux and Windows and copy both to dist/
+alwaysApply: true
+---
+
+# Build and dist/ artifacts
+
+Whenever the user asks to **build**, produce **Linux and Windows** release binaries,
+copy **both** to `dist/`, and confirm that `dist/` and `target/` contain the same
+binary (same timestamp or checksum).
+
+## Common pitfall (avoid)
+
+In Cursor/sandbox, `CARGO_TARGET_DIR` may point to `/tmp/cursor-sandbox-cache/...`.
+If you build there and copy from the project `target/`, `dist/` stays **stale**
+even when `cargo build` reports success.
+
+**Always** pin the output directory to this repo's `target/` before building.
+
+## Full workflow (required)
+
+Run from the project root:
+
+```bash
+cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+# 1) Ensure the build goes to this repo's target/
+unset CARGO_TARGET_DIR
+export CARGO_TARGET_DIR="$PWD/target"
+
+# 2) Tests (continue if failures are only from missing fixtures)
+cargo test || true
+
+# 3) Clean old artifacts and rebuild from scratch
+cargo clean
+rustup target add x86_64-unknown-linux-gnu x86_64-pc-windows-gnu 2>/dev/null || true
+
+cargo build --release --target x86_64-unknown-linux-gnu
+cargo build --release --target x86_64-pc-windows-gnu
+
+# 4) Copy to dist/ (use /bin/cp -f, not an aliased cp)
+mkdir -p dist
+/bin/cp -f target/x86_64-unknown-linux-gnu/release/plotconvert dist/plotconvert-linux-x86_64
+/bin/cp -f target/x86_64-pc-windows-gnu/release/plotconvert.exe dist/plotconvert-windows-x86_64.exe
+
+# 5) Verify dist/ reflects the current build
+dist/plotconvert-linux-x86_64 --version
+ls -lh dist/plotconvert-linux-x86_64 dist/plotconvert-windows-x86_64.exe
+md5sum dist/plotconvert-linux-x86_64 target/x86_64-unknown-linux-gnu/release/plotconvert
+```
+
+The two Linux `md5sum` values **must match**. If they differ, step 4 failed or
+`CARGO_TARGET_DIR` was not pinned.
+
+## Required artifacts in dist/
+
+- `dist/plotconvert-linux-x86_64`
+- `dist/plotconvert-windows-x86_64.exe`
+
+## Notes
+
+- `cargo clean` before release avoids reusing stale binaries in `target/`.
+- Explicit targets: `x86_64-unknown-linux-gnu` and `x86_64-pc-windows-gnu`.
+- `dist/` is listed in `.gitignore`.
+- Windows cross-compilation requires the GNU target and MinGW toolchain on the system.
+- Do not build only one platform when the user asks to "build" or "compile".
