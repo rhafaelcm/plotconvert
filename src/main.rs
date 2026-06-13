@@ -18,7 +18,7 @@ USAGE:
 OPTIONS:
     -o, --output <FILE>             Output path for a single input
     -d, --output-dir <DIRECTORY>  Directory for batch conversion
-    -t, --to <FORMAT>               Output: dxf, svg, plt, hpgl, hpgl2, or png
+    -t, --to <FORMAT>               Output: dxf, svg, plt, hpgl, hpgl2, png, or pdf
         --normalize-origin          Move the minimum X/Y to 0,0
         --flip-y                    Flip the Y axis
         --units-per-mm <NUMBER>     HP-GL units per mm (default: 40)
@@ -26,6 +26,7 @@ OPTIONS:
         --png-dpi <NUMBER>          PNG output resolution (default: 96)
         --png-stroke-scale <NUM>    Stroke width in PNG output (default: 3)
         --png-max-size <PIXELS>     Maximum PNG longest side (thumbnail)
+        --pdf-stroke-scale <NUM>    Stroke width in PDF output (default: 1)
         --curve-tolerance-mm <MM>   Curve tolerance (default: 0.05)
         --plt-dialect <DIALECT>     PLT output: hpgl2 (default) or hpgl
         --single-layer              Put generated DXF on layer 0
@@ -159,6 +160,7 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
                     }
                     "svg" | "svf" => OutputFormat::Svg,
                     "png" => OutputFormat::Png,
+                    "pdf" => OutputFormat::Pdf,
                     _ => return Err(format!("invalid output format: {value}")),
                 });
             }
@@ -197,6 +199,10 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
             "--png-max-size" => {
                 index += 1;
                 cli.options.png_max_size = Some(parse_positive_u32(&arguments, index, &text)?);
+            }
+            "--pdf-stroke-scale" => {
+                index += 1;
+                cli.options.pdf_stroke_scale = parse_number(&arguments, index, &text)?;
             }
             "--plt-dialect" => {
                 index += 1;

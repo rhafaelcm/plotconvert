@@ -584,3 +584,49 @@ fn png_max_size_does_not_upscale() {
         convert_between_bytes(input, InputFormat::Hpgl, OutputFormat::Png, &capped).unwrap();
     assert_eq!(png_dimensions(&png_unlimited), png_dimensions(&png_capped));
 }
+
+fn assert_pdf_header(pdf: &[u8]) {
+    assert_eq!(&pdf[0..4], b"%PDF");
+}
+
+#[test]
+fn converts_dxf_to_pdf() {
+    let (pdf, report) = convert_between_bytes(
+        SAMPLE_DXF.as_bytes(),
+        InputFormat::Dxf,
+        OutputFormat::Pdf,
+        &ConversionOptions::default(),
+    )
+    .unwrap();
+    assert_pdf_header(&pdf);
+    assert!(!pdf.is_empty());
+    assert!(report.entity_count >= 6);
+}
+
+#[test]
+fn converts_plt_to_pdf() {
+    let (pdf, report) = convert_between_bytes(
+        b"IN;SP1;PU0,0;PD400,0,400,400;PU800,800;CI200;",
+        InputFormat::Hpgl,
+        OutputFormat::Pdf,
+        &ConversionOptions::default(),
+    )
+    .unwrap();
+    assert_pdf_header(&pdf);
+    assert!(!pdf.is_empty());
+    assert_eq!(report.entity_count, 2);
+}
+
+#[test]
+fn converts_svg_to_pdf() {
+    let (pdf, report) = convert_between_bytes(
+        SAMPLE_SVG.as_bytes(),
+        InputFormat::Svg,
+        OutputFormat::Pdf,
+        &ConversionOptions::default(),
+    )
+    .unwrap();
+    assert_pdf_header(&pdf);
+    assert!(!pdf.is_empty());
+    assert!(report.entity_count >= 8);
+}

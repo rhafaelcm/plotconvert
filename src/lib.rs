@@ -4,6 +4,7 @@ mod hpgl;
 mod hpgl_writer;
 mod model;
 mod parser;
+mod pdf_writer;
 mod png_writer;
 mod svg_reader;
 mod svg_writer;
@@ -31,6 +32,7 @@ pub enum OutputFormat {
     Dxf,
     Svg,
     Png,
+    Pdf,
 }
 
 impl OutputFormat {
@@ -40,6 +42,7 @@ impl OutputFormat {
             Self::Dxf => "dxf",
             Self::Svg => "svg",
             Self::Png => "png",
+            Self::Pdf => "pdf",
         }
     }
 }
@@ -58,6 +61,7 @@ pub struct ConversionOptions {
     pub png_dpi: f64,
     pub png_stroke_scale: f64,
     pub png_max_size: Option<u32>,
+    pub pdf_stroke_scale: f64,
     pub normalize_origin: bool,
     pub flip_y: bool,
     pub single_layer: bool,
@@ -73,6 +77,7 @@ impl Default for ConversionOptions {
             png_dpi: 96.0,
             png_stroke_scale: 3.0,
             png_max_size: None,
+            pdf_stroke_scale: 1.0,
             normalize_origin: false,
             flip_y: false,
             single_layer: false,
@@ -204,6 +209,7 @@ pub fn convert_between_bytes(
         OutputFormat::Dxf => dxf::write_r12(&drawing, options).into_bytes(),
         OutputFormat::Svg => svg_writer::write_svg(&drawing).into_bytes(),
         OutputFormat::Png => png_writer::write_png(&drawing, options)?,
+        OutputFormat::Pdf => pdf_writer::write_pdf(&drawing, options)?,
     };
     Ok((
         converted,
@@ -288,6 +294,8 @@ pub fn output_format_from_path(path: impl AsRef<Path>) -> Option<OutputFormat> {
         Some(OutputFormat::Svg)
     } else if extension.eq_ignore_ascii_case("png") {
         Some(OutputFormat::Png)
+    } else if extension.eq_ignore_ascii_case("pdf") {
+        Some(OutputFormat::Pdf)
     } else {
         None
     }
@@ -329,6 +337,11 @@ fn validate_options(options: &ConversionOptions) -> Result<(), ConversionError> 
                 "png-max-size must be greater than zero".into(),
             ));
         }
+    }
+    if !options.pdf_stroke_scale.is_finite() || options.pdf_stroke_scale <= 0.0 {
+        return Err(ConversionError::InvalidOption(
+            "pdf-stroke-scale must be greater than zero".into(),
+        ));
     }
     Ok(())
 }

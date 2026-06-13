@@ -8,17 +8,17 @@ Conversor entre DXF ASCII, HP-GL/HP-GL2 (`.plt`, `.hpgl`) e SVG (`.svg`, `.svf`)
 escrito em Rust.
 
 O conversor suporta seis rotas de conversão cruzada entre formatos vetoriais,
-além de **PNG** como saída raster a partir de qualquer entrada:
+além de **PNG** e **PDF** como saídas exclusivas de exportação a partir de qualquer entrada:
 
-- **DXF** → PLT, SVG, PNG
-- **PLT/HP-GL** → DXF, SVG, PNG
-- **SVG/SVF** → DXF, PLT, PNG
+- **DXF** → PLT, SVG, PNG, PDF
+- **PLT/HP-GL** → DXF, SVG, PNG, PDF
+- **SVG/SVF** → DXF, PLT, PNG, PDF
 
 | Entrada | Saídas |
 | --- | --- |
-| DXF (`.dxf`) | PLT, SVG ou PNG |
-| PLT/HP-GL (`.plt`, `.hpgl`) | DXF, SVG ou PNG |
-| SVG/SVF (`.svg`, `.svf`) | DXF, PLT ou PNG |
+| DXF (`.dxf`) | PLT, SVG, PNG ou PDF |
+| PLT/HP-GL (`.plt`, `.hpgl`) | DXF, SVG, PNG ou PDF |
+| SVG/SVF (`.svg`, `.svf`) | DXF, PLT, PNG ou PDF |
 
 ## Uso
 
@@ -31,6 +31,7 @@ plotconvert --to svg desenho.plt
 plotconvert --to plt desenho.svg
 plotconvert --to dxf desenho.svg
 plotconvert --to png desenho.dxf
+plotconvert --to pdf desenho.dxf
 ```
 
 O formato da entrada é detectado pela extensão e, quando necessário, pelo
@@ -39,11 +40,11 @@ conteúdo.
 **Conversões suportadas** — use `--to` ou a extensão informada em `--output`
 para escolher o formato de saída:
 
-- DXF → PLT, SVG ou PNG;
-- PLT/HP-GL → DXF, SVG ou PNG;
-- SVG/SVF → DXF, PLT ou PNG.
+- DXF → PLT, SVG, PNG ou PDF;
+- PLT/HP-GL → DXF, SVG, PNG ou PDF;
+- SVG/SVF → DXF, PLT, PNG ou PDF.
 
-PNG é exclusivamente **saída**; arquivos `.png` não são aceitos como entrada.
+PNG e PDF são exclusivamente **saída**; arquivos `.png` e `.pdf` não são aceitos como entrada.
 
 **Saída padrão** (sem `--to` nem extensão explícita em `--output`):
 
@@ -68,6 +69,7 @@ Valores aceitos:
 - `dxf`: gera DXF ASCII R12;
 - `svg` ou `svf`: gera SVG;
 - `png`: gera imagem PNG rasterizada;
+- `pdf`: gera documento PDF vetorial;
 - `plt`: gera PLT usando o valor de `--plt-dialect`;
 - `hpgl`: gera PLT em HP-GL clássico;
 - `hpgl2`: gera PLT em HP-GL/2.
@@ -99,6 +101,15 @@ plotconvert --to hpgl desenho.svg
 
 # SVG → PNG
 plotconvert --to png desenho.svg
+
+# DXF → PDF
+plotconvert --to pdf desenho.dxf
+
+# PLT → PDF
+plotconvert --to pdf molde.plt
+
+# SVG → PDF
+plotconvert --to pdf desenho.svg
 ```
 
 Quando `--to` é usado, ele tem prioridade sobre a extensão informada em
@@ -118,6 +129,7 @@ plotconvert desenho.plt -o resultado.svg
 plotconvert desenho.svg -o resultado.dxf
 plotconvert desenho.svg -o resultado.plt
 plotconvert desenho.dxf -o preview.png
+plotconvert desenho.dxf -o preview.pdf
 ```
 
 Não pode ser combinado com `--output-dir`.
@@ -248,6 +260,21 @@ plotconvert --to png --png-max-size 1024 desenho.svg
 
 O valor deve ser um inteiro maior que zero. Sem essa opção, não há limite de
 tamanho.
+
+### `--pdf-stroke-scale <NUMERO>`
+
+Multiplica a espessura dos traços na saída PDF. O padrão é `1`, preservando as
+larguras em milímetros da exportação SVG intermediária.
+
+Afeta apenas conversões cuja saída seja PDF. A exportação PNG não é alterada.
+
+```bash
+plotconvert --to pdf desenho.dxf
+plotconvert --to pdf --pdf-stroke-scale 2 desenho.dxf
+plotconvert --to pdf --pdf-stroke-scale 1.5 molde.plt
+```
+
+O valor deve ser maior que zero.
 
 ### `--curve-tolerance-mm <MM>`
 
@@ -383,6 +410,13 @@ plotconvert --to png molde.dxf
 plotconvert --to png --png-dpi 300 molde.dxf
 ```
 
+### DXF → PDF
+
+```bash
+plotconvert --to pdf molde.dxf
+plotconvert --to pdf --pdf-stroke-scale 2 molde.dxf
+```
+
 ### PLT → DXF
 
 Converter um PLT para DXF R12 (saída padrão):
@@ -407,6 +441,12 @@ plotconvert --to svg molde.plt
 
 ```bash
 plotconvert --to png molde.plt
+```
+
+### PLT → PDF
+
+```bash
+plotconvert --to pdf molde.plt
 ```
 
 ### SVG → DXF
@@ -434,6 +474,13 @@ plotconvert --to png desenho.svg
 plotconvert desenho.svg -o preview.png
 ```
 
+### SVG → PDF
+
+```bash
+plotconvert --to pdf desenho.svg
+plotconvert desenho.svg -o preview.pdf
+```
+
 ### Opções comuns
 
 Converter vários arquivos em lote:
@@ -450,7 +497,7 @@ plotconvert --normalize-origin --flip-y --overwrite molde.dxf
 
 ## Entrada DXF
 
-Saídas possíveis: **PLT** (padrão), **SVG** e **PNG**.
+Saídas possíveis: **PLT** (padrão), **SVG**, **PNG** e **PDF**.
 
 O leitor aceita DXF ASCII R12, R14 e versões posteriores com estrutura por
 group codes. São convertidos:
@@ -485,9 +532,14 @@ arcos e polylines.
 Rasteriza o desenho com as mesmas cores e espessuras da exportação SVG. Use
 `--png-dpi` para controlar a resolução.
 
+### DXF → PDF
+
+Exportação vetorial via SVG intermediário. Use `--pdf-stroke-scale` para ajustar
+a espessura dos traços (padrão `1`).
+
 ## Entrada PLT/HP-GL
 
-Saídas possíveis: **DXF** (padrão), **SVG** e **PNG**.
+Saídas possíveis: **DXF** (padrão), **SVG**, **PNG** e **PDF**.
 
 São aceitos HP-GL clássico e HP-GL/2, incluindo arquivos com comandos
 concatenados, preâmbulos PCL e coordenadas compactadas `PE`. Arquivos com
@@ -516,9 +568,13 @@ larguras, canetas, textos, círculos, arcos e polylines.
 Mesma aparência visual da exportação SVG, convertida para bitmap com fundo
 transparente.
 
+### PLT → PDF
+
+Mesma aparência vetorial da exportação SVG, escrita em uma página PDF.
+
 ## Entrada SVG/SVF
 
-Saídas possíveis: **DXF** (padrão), **PLT** e **PNG**.
+Saídas possíveis: **DXF** (padrão), **PLT**, **PNG** e **PDF**.
 
 Arquivos com extensão `.svf` são aceitos como alias de SVG para compatibilidade
 com a grafia indicada, desde que o conteúdo seja XML SVG.
@@ -560,6 +616,11 @@ padrão de saída é HP-GL/2; use `--plt-dialect hpgl` para HP-GL clássico.
 Rasteriza o desenho interpretado a partir do SVG de entrada. Texto depende das
 fontes instaladas no sistema.
 
+### SVG → PDF
+
+Exportação vetorial a partir do SVG interpretado. Texto depende das fontes
+instaladas no sistema.
+
 ## Saída PNG
 
 PNG está disponível **somente como formato de saída**, a partir de entradas
@@ -576,6 +637,22 @@ plotconvert --to png desenho.dxf
 plotconvert --to png --png-dpi 300 molde.plt
 plotconvert --to png --png-max-size 512 desenho.dxf
 plotconvert desenho.svg -o preview.png
+```
+
+## Saída PDF
+
+PDF está disponível **somente como formato de saída**, a partir de entradas
+DXF, PLT ou SVG.
+
+O conversor gera um SVG intermediário com a mesma lógica de
+[`svg_writer.rs`](src/svg_writer.rs) e converte para PDF vetorial com svg2pdf.
+Traços e cores permanecem escaláveis; use `--pdf-stroke-scale` (padrão `1`)
+para ajustar a espessura.
+
+```bash
+plotconvert --to pdf desenho.dxf
+plotconvert --to pdf --pdf-stroke-scale 2 molde.plt
+plotconvert desenho.svg -o preview.pdf
 ```
 
 ## Compilação
