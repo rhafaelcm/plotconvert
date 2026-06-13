@@ -18,11 +18,14 @@ USO:
 OPCOES:
     -o, --output <ARQUIVO>          Saida para uma unica entrada
     -d, --output-dir <DIRETORIO>    Diretorio para conversao em lote
-    -t, --to <FORMATO>              Saida: dxf, svg, plt, hpgl ou hpgl2
+    -t, --to <FORMATO>              Saida: dxf, svg, plt, hpgl, hpgl2 ou png
         --normalize-origin          Move o menor X/Y para 0,0
         --flip-y                    Inverte o eixo Y
         --units-per-mm <NUMERO>     Unidades HP-GL por mm (padrao: 40)
         --units-per-inch <NUMERO>   Unidades HP-GL por polegada (padrao: 1016)
+        --png-dpi <NUMERO>          Resolucao da saida PNG (padrao: 96)
+        --png-stroke-scale <NUM>    Espessura dos tracos no PNG (padrao: 3)
+        --png-max-size <PIXELS>   Lado maior maximo do PNG (thumbnail)
         --curve-tolerance-mm <MM>   Tolerancia de curvas (padrao: 0.05)
         --plt-dialect <DIALETO>     Saida para PLT: hpgl2 (padrao) ou hpgl
         --single-layer              Coloca o DXF gerado na camada 0
@@ -155,6 +158,7 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
                         OutputFormat::Hpgl
                     }
                     "svg" | "svf" => OutputFormat::Svg,
+                    "png" => OutputFormat::Png,
                     _ => return Err(format!("formato de saída inválido: {value}")),
                 });
             }
@@ -181,6 +185,18 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
             "--curve-tolerance-mm" => {
                 index += 1;
                 cli.options.curve_tolerance_mm = parse_number(&arguments, index, &text)?;
+            }
+            "--png-dpi" => {
+                index += 1;
+                cli.options.png_dpi = parse_number(&arguments, index, &text)?;
+            }
+            "--png-stroke-scale" => {
+                index += 1;
+                cli.options.png_stroke_scale = parse_number(&arguments, index, &text)?;
+            }
+            "--png-max-size" => {
+                index += 1;
+                cli.options.png_max_size = Some(parse_positive_u32(&arguments, index, &text)?);
             }
             "--plt-dialect" => {
                 index += 1;
@@ -229,6 +245,17 @@ fn parse_number(arguments: &[OsString], index: usize, option: &str) -> Result<f6
             value.to_string_lossy()
         )
     })
+}
+
+fn parse_positive_u32(arguments: &[OsString], index: usize, option: &str) -> Result<u32, String> {
+    let value = parse_number(arguments, index, option)?;
+    if !value.is_finite() || value <= 0.0 || value.fract() != 0.0 {
+        return Err(format!(
+            "valor inteiro positivo invalido para {option}: {}",
+            required_value(arguments, index, option)?.to_string_lossy()
+        ));
+    }
+    Ok(value as u32)
 }
 
 fn output_path(input: &Path, cli: &Cli) -> PathBuf {

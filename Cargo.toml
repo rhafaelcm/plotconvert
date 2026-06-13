@@ -5,6 +5,10 @@ edition = "2024"
 description = "Conversor multiplataforma entre HP-GL/HP-GL2, DXF e SVG"
 license = "MIT"
 
+[dependencies]
+resvg = "0.45"
+usvg = "0.45"
+
 [lib]
 name = "plotconvert"
 path = "src/lib.rs"

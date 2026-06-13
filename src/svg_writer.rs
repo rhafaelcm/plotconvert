@@ -3,6 +3,10 @@ use std::fmt::Write;
 use crate::model::{Drawing, Entity, Point};
 
 pub fn write_svg(drawing: &Drawing) -> String {
+    write_svg_with_stroke_scale(drawing, 1.0)
+}
+
+pub fn write_svg_with_stroke_scale(drawing: &Drawing, stroke_scale: f64) -> String {
     let bounds = drawing.bounds().unwrap_or_default();
     let width = (bounds.max.x - bounds.min.x).abs().max(0.001);
     let height = (bounds.max.y - bounds.min.y).abs().max(0.001);
@@ -20,13 +24,18 @@ pub fn write_svg(drawing: &Drawing) -> String {
     );
     output.push_str("  <g fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n");
     for entity in &drawing.entities {
-        write_entity(&mut output, drawing, entity);
+        write_entity(&mut output, drawing, entity, stroke_scale);
     }
     output.push_str("  </g>\n</svg>\n");
     output
 }
 
-fn write_entity(output: &mut String, drawing: &Drawing, entity: &Entity) {
+fn write_entity(
+    output: &mut String,
+    drawing: &Drawing,
+    entity: &Entity,
+    stroke_scale: f64,
+) {
     let style = drawing
         .pens
         .iter()
@@ -38,7 +47,7 @@ fn write_entity(output: &mut String, drawing: &Drawing, entity: &Entity) {
     if color == (255, 255, 255) {
         color = (0, 0, 0);
     }
-    let width = style.and_then(|style| style.width_mm).unwrap_or(0.25);
+    let width = style.and_then(|style| style.width_mm).unwrap_or(0.25) * stroke_scale;
     let attributes = format!(
         r##"stroke="#{:02x}{:02x}{:02x}" stroke-width="{}" vector-effect="non-scaling-stroke" data-pen="{}""##,
         color.0,
@@ -172,4 +181,24 @@ fn escape_xml(value: &str) -> String {
         .replace('>', "&gt;")
         .replace('"', "&quot;")
         .replace('\'', "&apos;")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::{Drawing, Entity, Point};
+
+    #[test]
+    fn stroke_scale_multiplies_width() {
+        let drawing = Drawing {
+            entities: vec![Entity::Polyline {
+                points: vec![Point::new(0.0, 0.0), Point::new(10.0, 0.0)],
+                closed: false,
+                pen: 1,
+            }],
+            pens: vec![],
+        };
+        let svg = write_svg_with_stroke_scale(&drawing, 3.0);
+        assert!(svg.contains(r#"stroke-width="0.75""#));
+    }
 }

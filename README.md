@@ -5,17 +5,18 @@
 Conversor entre DXF ASCII, HP-GL/HP-GL2 (`.plt`, `.hpgl`) e SVG (`.svg`, `.svf`),
 escrito em Rust.
 
-O conversor suporta seis rotas de conversão cruzada:
+O conversor suporta seis rotas de conversão cruzada entre formatos vetoriais,
+além de **PNG** como saída raster a partir de qualquer entrada:
 
-- **DXF** → PLT, SVG
-- **PLT/HP-GL** → DXF, SVG
-- **SVG/SVF** → DXF, PLT
+- **DXF** → PLT, SVG, PNG
+- **PLT/HP-GL** → DXF, SVG, PNG
+- **SVG/SVF** → DXF, PLT, PNG
 
 | Entrada | Saídas |
 | --- | --- |
-| DXF (`.dxf`) | PLT ou SVG |
-| PLT/HP-GL (`.plt`, `.hpgl`) | DXF ou SVG |
-| SVG/SVF (`.svg`, `.svf`) | DXF ou PLT |
+| DXF (`.dxf`) | PLT, SVG ou PNG |
+| PLT/HP-GL (`.plt`, `.hpgl`) | DXF, SVG ou PNG |
+| SVG/SVF (`.svg`, `.svf`) | DXF, PLT ou PNG |
 
 ## Uso
 
@@ -27,17 +28,20 @@ plotconvert --to svg desenho.dxf
 plotconvert --to svg desenho.plt
 plotconvert --to plt desenho.svg
 plotconvert --to dxf desenho.svg
+plotconvert --to png desenho.dxf
 ```
 
 O formato da entrada é detectado pela extensão e, quando necessário, pelo
 conteúdo.
 
 **Conversões suportadas** — use `--to` ou a extensão informada em `--output`
-para escolher qualquer uma das seis rotas:
+para escolher o formato de saída:
 
-- DXF → PLT ou SVG;
-- PLT/HP-GL → DXF ou SVG;
-- SVG/SVF → DXF ou PLT.
+- DXF → PLT, SVG ou PNG;
+- PLT/HP-GL → DXF, SVG ou PNG;
+- SVG/SVF → DXF, PLT ou PNG.
+
+PNG é exclusivamente **saída**; arquivos `.png` não são aceitos como entrada.
 
 **Saída padrão** (sem `--to` nem extensão explícita em `--output`):
 
@@ -55,12 +59,13 @@ Execute `plotconvert --help` para consultar todas as opções.
 ### `-t, --to <FORMATO>`
 
 Escolhe explicitamente o formato de saída. É a opção principal para selecionar
-entre as seis rotas de conversão.
+o destino da conversão.
 
 Valores aceitos:
 
 - `dxf`: gera DXF ASCII R12;
 - `svg` ou `svf`: gera SVG;
+- `png`: gera imagem PNG rasterizada;
 - `plt`: gera PLT usando o valor de `--plt-dialect`;
 - `hpgl`: gera PLT em HP-GL clássico;
 - `hpgl2`: gera PLT em HP-GL/2.
@@ -72,17 +77,26 @@ plotconvert --to plt desenho.dxf
 # DXF → SVG
 plotconvert --to svg desenho.dxf
 
+# DXF → PNG
+plotconvert --to png desenho.dxf
+
 # PLT → DXF
 plotconvert --to dxf desenho.plt
 
 # PLT → SVG
 plotconvert --to svg desenho.plt
 
+# PLT → PNG
+plotconvert --to png desenho.plt
+
 # SVG → DXF
 plotconvert --to dxf desenho.svg
 
 # SVG → PLT (HP-GL clássico)
 plotconvert --to hpgl desenho.svg
+
+# SVG → PNG
+plotconvert --to png desenho.svg
 ```
 
 Quando `--to` é usado, ele tem prioridade sobre a extensão informada em
@@ -101,6 +115,7 @@ plotconvert desenho.dxf -o resultado.svg
 plotconvert desenho.plt -o resultado.svg
 plotconvert desenho.svg -o resultado.dxf
 plotconvert desenho.svg -o resultado.plt
+plotconvert desenho.dxf -o preview.png
 ```
 
 Não pode ser combinado com `--output-dir`.
@@ -178,6 +193,59 @@ O valor deve ser maior que zero. Use esta opção quando a resolução do plotte
 for conhecida em unidades por polegada.
 
 Não pode ser combinado com `--units-per-mm`.
+
+### `--png-dpi <NUMERO>`
+
+Define a resolução da imagem PNG, em pontos por polegada. O padrão é `96`.
+
+Afeta apenas conversões cuja saída seja PNG. Valores maiores geram imagens com
+mais pixels e arquivos potencialmente maiores.
+
+```bash
+plotconvert --to png desenho.dxf
+plotconvert --to png --png-dpi 150 desenho.plt
+plotconvert --to png --png-dpi 300 desenho.svg
+```
+
+O valor deve ser maior que zero.
+
+### `--png-stroke-scale <NUMERO>`
+
+Multiplica a espessura dos traços na saída PNG. O padrão é `3`, deixando os
+contornos mais visíveis na rasterização (traços finos em milímetros viram poucos
+pixels em 96 DPI).
+
+Afeta apenas conversões cuja saída seja PNG. A exportação SVG não é alterada.
+
+```bash
+plotconvert --to png desenho.dxf
+plotconvert --to png --png-stroke-scale 2 desenho.dxf
+plotconvert --to png --png-stroke-scale 4 --png-dpi 150 desenho.plt
+```
+
+O valor deve ser maior que zero. Use `1` para manter a mesma espessura relativa
+da exportação SVG.
+
+### `--png-max-size <PIXELS>`
+
+Limita o **lado maior** (largura ou altura) da imagem PNG, em pixels. A imagem
+é reduzida proporcionalmente quando excede esse valor; desenhos já menores **não
+são ampliados**.
+
+Afeta apenas conversões cuja saída seja PNG. Útil para gerar thumbnails sem
+criar imagens muito grandes a partir de desenhos extensos.
+
+O tamanho base vem de `--png-dpi` e das dimensões do desenho; `--png-max-size`
+aplica um teto depois dessa rasterização.
+
+```bash
+plotconvert --to png --png-max-size 512 desenho.dxf
+plotconvert --to png --png-max-size 256 --png-dpi 96 molde.plt
+plotconvert --to png --png-max-size 1024 desenho.svg
+```
+
+O valor deve ser um inteiro maior que zero. Sem essa opção, não há limite de
+tamanho.
 
 ### `--curve-tolerance-mm <MM>`
 
@@ -306,6 +374,13 @@ plotconvert --plt-dialect hpgl molde.dxf
 plotconvert --to svg molde.dxf
 ```
 
+### DXF → PNG
+
+```bash
+plotconvert --to png molde.dxf
+plotconvert --to png --png-dpi 300 molde.dxf
+```
+
 ### PLT → DXF
 
 Converter um PLT para DXF R12 (saída padrão):
@@ -326,6 +401,12 @@ plotconvert --single-layer molde.plt
 plotconvert --to svg molde.plt
 ```
 
+### PLT → PNG
+
+```bash
+plotconvert --to png molde.plt
+```
+
 ### SVG → DXF
 
 Converter SVG para DXF (saída padrão):
@@ -344,6 +425,13 @@ plotconvert --to plt desenho.svg
 plotconvert --to hpgl desenho.svf
 ```
 
+### SVG → PNG
+
+```bash
+plotconvert --to png desenho.svg
+plotconvert desenho.svg -o preview.png
+```
+
 ### Opções comuns
 
 Converter vários arquivos em lote:
@@ -360,7 +448,7 @@ plotconvert --normalize-origin --flip-y --overwrite molde.dxf
 
 ## Entrada DXF
 
-Saídas possíveis: **PLT** (padrão) e **SVG**.
+Saídas possíveis: **PLT** (padrão), **SVG** e **PNG**.
 
 O leitor aceita DXF ASCII R12, R14 e versões posteriores com estrutura por
 group codes. São convertidos:
@@ -390,9 +478,14 @@ precisão é controlada por `--curve-tolerance-mm`. O SVG gerado utiliza
 dimensões em milímetros e preserva cores, larguras, canetas, textos, círculos,
 arcos e polylines.
 
+### DXF → PNG
+
+Rasteriza o desenho com as mesmas cores e espessuras da exportação SVG. Use
+`--png-dpi` para controlar a resolução.
+
 ## Entrada PLT/HP-GL
 
-Saídas possíveis: **DXF** (padrão) e **SVG**.
+Saídas possíveis: **DXF** (padrão), **SVG** e **PNG**.
 
 São aceitos HP-GL clássico e HP-GL/2, incluindo arquivos com comandos
 concatenados, preâmbulos PCL e coordenadas compactadas `PE`. Arquivos com
@@ -416,9 +509,14 @@ As coordenadas HP-GL são convertidas para milímetros conforme
 `--units-per-mm` ou `--units-per-inch`. O escritor SVG preserva cores,
 larguras, canetas, textos, círculos, arcos e polylines.
 
+### PLT → PNG
+
+Mesma aparência visual da exportação SVG, convertida para bitmap com fundo
+transparente.
+
 ## Entrada SVG/SVF
 
-Saídas possíveis: **DXF** (padrão) e **PLT**.
+Saídas possíveis: **DXF** (padrão), **PLT** e **PNG**.
 
 Arquivos com extensão `.svf` são aceitos como alias de SVG para compatibilidade
 com a grafia indicada, desde que o conteúdo seja XML SVG.
@@ -454,6 +552,29 @@ camadas `PEN_001`, `PEN_002`, etc., a menos que `--single-layer` seja usado.
 
 Curvas sem equivalente direto em HP-GL são aproximadas por trajetórias. O
 padrão de saída é HP-GL/2; use `--plt-dialect hpgl` para HP-GL clássico.
+
+### SVG → PNG
+
+Rasteriza o desenho interpretado a partir do SVG de entrada. Texto depende das
+fontes instaladas no sistema.
+
+## Saída PNG
+
+PNG está disponível **somente como formato de saída**, a partir de entradas
+DXF, PLT ou SVG.
+
+O conversor gera um SVG intermediário com a mesma lógica de
+[`svg_writer.rs`](src/svg_writer.rs) e rasteriza com resvg. A imagem resultante
+usa fundo transparente, preserva cores e respeita `--png-dpi` (padrão `96`),
+`--png-stroke-scale` (padrão `3`) e, opcionalmente, `--png-max-size` para limitar
+o lado maior (ideal para thumbnails).
+
+```bash
+plotconvert --to png desenho.dxf
+plotconvert --to png --png-dpi 300 molde.plt
+plotconvert --to png --png-max-size 512 desenho.dxf
+plotconvert desenho.svg -o preview.png
+```
 
 ## Compilação
 

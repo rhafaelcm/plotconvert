@@ -4,6 +4,7 @@ mod hpgl;
 mod hpgl_writer;
 mod model;
 mod parser;
+mod png_writer;
 mod svg_reader;
 mod svg_writer;
 
@@ -29,6 +30,7 @@ pub enum OutputFormat {
     Hpgl,
     Dxf,
     Svg,
+    Png,
 }
 
 impl OutputFormat {
@@ -37,6 +39,7 @@ impl OutputFormat {
             Self::Hpgl => "plt",
             Self::Dxf => "dxf",
             Self::Svg => "svg",
+            Self::Png => "png",
         }
     }
 }
@@ -52,6 +55,9 @@ pub enum PltDialect {
 pub struct ConversionOptions {
     pub units_per_mm: f64,
     pub curve_tolerance_mm: f64,
+    pub png_dpi: f64,
+    pub png_stroke_scale: f64,
+    pub png_max_size: Option<u32>,
     pub normalize_origin: bool,
     pub flip_y: bool,
     pub single_layer: bool,
@@ -64,6 +70,9 @@ impl Default for ConversionOptions {
         Self {
             units_per_mm: DEFAULT_HPGL_UNITS_PER_INCH / MM_PER_INCH,
             curve_tolerance_mm: 0.05,
+            png_dpi: 96.0,
+            png_stroke_scale: 3.0,
+            png_max_size: None,
             normalize_origin: false,
             flip_y: false,
             single_layer: false,
@@ -194,6 +203,7 @@ pub fn convert_between_bytes(
         OutputFormat::Hpgl => hpgl_writer::write_hpgl2(&drawing, options).into_bytes(),
         OutputFormat::Dxf => dxf::write_r12(&drawing, options).into_bytes(),
         OutputFormat::Svg => svg_writer::write_svg(&drawing).into_bytes(),
+        OutputFormat::Png => png_writer::write_png(&drawing, options)?,
     };
     Ok((
         converted,
@@ -276,6 +286,8 @@ pub fn output_format_from_path(path: impl AsRef<Path>) -> Option<OutputFormat> {
         Some(OutputFormat::Hpgl)
     } else if extension.eq_ignore_ascii_case("svg") || extension.eq_ignore_ascii_case("svf") {
         Some(OutputFormat::Svg)
+    } else if extension.eq_ignore_ascii_case("png") {
+        Some(OutputFormat::Png)
     } else {
         None
     }
@@ -300,6 +312,23 @@ fn validate_options(options: &ConversionOptions) -> Result<(), ConversionError> 
         return Err(ConversionError::InvalidOption(
             "curve-tolerance-mm deve ser maior que zero".into(),
         ));
+    }
+    if !options.png_dpi.is_finite() || options.png_dpi <= 0.0 {
+        return Err(ConversionError::InvalidOption(
+            "png-dpi deve ser maior que zero".into(),
+        ));
+    }
+    if !options.png_stroke_scale.is_finite() || options.png_stroke_scale <= 0.0 {
+        return Err(ConversionError::InvalidOption(
+            "png-stroke-scale deve ser maior que zero".into(),
+        ));
+    }
+    if let Some(max_size) = options.png_max_size {
+        if max_size == 0 {
+            return Err(ConversionError::InvalidOption(
+                "png-max-size deve ser maior que zero".into(),
+            ));
+        }
     }
     Ok(())
 }

@@ -464,3 +464,123 @@ fn roundtrips_svg_through_dxf() {
     assert!(String::from_utf8(svg).unwrap().contains("<svg"));
     assert!(second.entity_count >= first.entity_count);
 }
+
+fn png_dimensions(png: &[u8]) -> (u32, u32) {
+    assert_eq!(&png[0..8], b"\x89PNG\r\n\x1a\n");
+    let width = u32::from_be_bytes(png[16..20].try_into().unwrap());
+    let height = u32::from_be_bytes(png[20..24].try_into().unwrap());
+    (width, height)
+}
+
+#[test]
+fn converts_dxf_to_png() {
+    let (png, report) = convert_between_bytes(
+        SAMPLE_DXF.as_bytes(),
+        InputFormat::Dxf,
+        OutputFormat::Png,
+        &ConversionOptions::default(),
+    )
+    .unwrap();
+    assert_eq!(&png[0..8], b"\x89PNG\r\n\x1a\n");
+    assert!(!png.is_empty());
+    let (width, height) = png_dimensions(&png);
+    assert!(width > 0);
+    assert!(height > 0);
+    assert!(report.entity_count >= 6);
+}
+
+#[test]
+fn converts_plt_to_png() {
+    let (png, report) = convert_between_bytes(
+        b"IN;SP1;PU0,0;PD400,0,400,400;PU800,800;CI200;",
+        InputFormat::Hpgl,
+        OutputFormat::Png,
+        &ConversionOptions::default(),
+    )
+    .unwrap();
+    assert_eq!(&png[0..8], b"\x89PNG\r\n\x1a\n");
+    assert!(!png.is_empty());
+    assert_eq!(report.entity_count, 2);
+}
+
+#[test]
+fn converts_svg_to_png() {
+    let (png, report) = convert_between_bytes(
+        SAMPLE_SVG.as_bytes(),
+        InputFormat::Svg,
+        OutputFormat::Png,
+        &ConversionOptions::default(),
+    )
+    .unwrap();
+    assert_eq!(&png[0..8], b"\x89PNG\r\n\x1a\n");
+    assert!(!png.is_empty());
+    assert!(report.entity_count >= 8);
+}
+
+#[test]
+fn png_dpi_affects_output_size() {
+    let low = ConversionOptions {
+        png_dpi: 96.0,
+        ..ConversionOptions::default()
+    };
+    let high = ConversionOptions {
+        png_dpi: 192.0,
+        ..ConversionOptions::default()
+    };
+    let (png_low, _) = convert_between_bytes(
+        SAMPLE_DXF.as_bytes(),
+        InputFormat::Dxf,
+        OutputFormat::Png,
+        &low,
+    )
+    .unwrap();
+    let (png_high, _) = convert_between_bytes(
+        SAMPLE_DXF.as_bytes(),
+        InputFormat::Dxf,
+        OutputFormat::Png,
+        &high,
+    )
+    .unwrap();
+    let (width_low, height_low) = png_dimensions(&png_low);
+    let (width_high, height_high) = png_dimensions(&png_high);
+    assert!(width_high >= width_low);
+    assert!(height_high >= height_low);
+    assert!(width_high > width_low || height_high > height_low);
+}
+
+#[test]
+fn png_max_size_limits_longest_side() {
+    let options = ConversionOptions {
+        png_max_size: Some(256),
+        ..ConversionOptions::default()
+    };
+    let (png, _) = convert_between_bytes(
+        SAMPLE_DXF.as_bytes(),
+        InputFormat::Dxf,
+        OutputFormat::Png,
+        &options,
+    )
+    .unwrap();
+    let (width, height) = png_dimensions(&png);
+    assert!(width.max(height) <= 256);
+}
+
+#[test]
+fn png_max_size_does_not_upscale() {
+    let unlimited = ConversionOptions::default();
+    let capped = ConversionOptions {
+        png_max_size: Some(4096),
+        ..ConversionOptions::default()
+    };
+    let input = b"IN;SP1;PU0,0;PD400,0,400,400;PU800,800;CI200;";
+    let (png_unlimited, _) = convert_between_bytes(
+        input,
+        InputFormat::Hpgl,
+        OutputFormat::Png,
+        &unlimited,
+    )
+    .unwrap();
+    let (png_capped, _) =
+        convert_between_bytes(input, InputFormat::Hpgl, OutputFormat::Png, &capped).unwrap();
+    assert_eq!(png_dimensions(&png_unlimited), png_dimensions(&png_capped));
+}
