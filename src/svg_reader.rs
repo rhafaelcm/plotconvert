@@ -73,14 +73,14 @@ pub fn read(
     let text = String::from_utf8_lossy(input);
     if !text.to_ascii_lowercase().contains("<svg") {
         return Err(ConversionError::Parse(
-            "arquivo não parece ser um SVG XML".into(),
+            "file does not appear to be SVG XML".into(),
         ));
     }
     let tags = parse_tags(&text)?;
     let root = tags
         .iter()
         .find(|tag| tag.name == "svg" && !tag.closing)
-        .ok_or_else(|| ConversionError::Parse("elemento <svg> não encontrado".into()))?;
+        .ok_or_else(|| ConversionError::Parse("<svg> element not found".into()))?;
     let root_matrix = root_matrix(root);
     let mut reader = Reader {
         options,
@@ -104,12 +104,12 @@ fn parse_tags(xml: &str) -> Result<Vec<Tag>, ConversionError> {
         if xml[start..].starts_with("<!--") {
             let end = xml[start + 4..]
                 .find("-->")
-                .ok_or_else(|| ConversionError::Parse("comentário SVG truncado".into()))?;
+                .ok_or_else(|| ConversionError::Parse("truncated SVG comment".into()))?;
             index = start + 4 + end + 3;
             continue;
         }
         let Some(relative_end) = xml[start..].find('>') else {
-            return Err(ConversionError::Parse("tag SVG truncada".into()));
+            return Err(ConversionError::Parse("truncated SVG tag".into()));
         };
         let end = start + relative_end;
         let raw = xml[start + 1..end].trim();
@@ -263,7 +263,7 @@ impl Reader<'_> {
                 "path" => self.path(tag, matrix, pen)?,
                 "text" => self.text(tag, matrix, pen),
                 "svg" | "defs" | "title" | "desc" | "metadata" | "style" => {}
-                "use" => self.warn("use", "referências <use> não são expandidas"),
+                "use" => self.warn("use", "<use> references are not expanded"),
                 name => self.unsupported(name)?,
             }
         }
@@ -457,10 +457,10 @@ impl Reader<'_> {
     fn unsupported(&mut self, name: &str) -> Result<(), ConversionError> {
         if self.options.strict {
             Err(ConversionError::Parse(format!(
-                "elemento SVG <{name}> não suportado"
+                "unsupported SVG element <{name}>"
             )))
         } else {
-            self.warn(name, "elemento SVG não suportado");
+            self.warn(name, "unsupported SVG element");
             Ok(())
         }
     }
@@ -732,7 +732,7 @@ fn parse_path(
             command = value;
             index += 1;
         } else if command == ' ' {
-            return Err("path SVG sem comando inicial".into());
+            return Err("SVG path missing initial command".into());
         }
         let relative = command.is_ascii_lowercase();
         match command.to_ascii_uppercase() {
@@ -824,7 +824,7 @@ fn parse_path(
                 command = ' ';
                 last_control = None;
             }
-            other => return Err(format!("comando path SVG {other} não suportado")),
+            other => return Err(format!("unsupported SVG path command {other}")),
         }
     }
     if !path.is_empty() {
@@ -889,7 +889,7 @@ fn read_number(tokens: &[PathToken], index: &mut usize) -> Result<f64, String> {
             *index += 1;
             Ok(*value)
         }
-        _ => Err("parâmetros insuficientes em path SVG".into()),
+        _ => Err("insufficient parameters in SVG path".into()),
     }
 }
 

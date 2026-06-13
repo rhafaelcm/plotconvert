@@ -17,19 +17,19 @@ pub fn write_png(drawing: &Drawing, options: &ConversionOptions) -> Result<Vec<u
     parse_options.fontdb = Arc::new(fontdb);
 
     let tree = Tree::from_str(&svg, &parse_options)
-        .map_err(|error| ConversionError::Parse(format!("falha ao interpretar SVG para PNG: {error}")))?;
+        .map_err(|error| ConversionError::Parse(format!("failed to parse SVG for PNG: {error}")))?;
 
     let size = tree.size();
     let (width, height, transform) = fit_png_scale(size.width(), size.height(), options.png_max_size);
     let mut pixmap = Pixmap::new(width, height).ok_or_else(|| {
-        ConversionError::Parse(format!("dimensões PNG inválidas: {width}x{height}"))
+        ConversionError::Parse(format!("invalid PNG dimensions: {width}x{height}"))
     })?;
 
     render(&tree, transform, &mut pixmap.as_mut());
 
     pixmap
         .encode_png()
-        .map_err(|error| ConversionError::Parse(format!("falha ao codificar PNG: {error}")))
+        .map_err(|error| ConversionError::Parse(format!("failed to encode PNG: {error}")))
 }
 
 fn fit_png_scale(svg_width: f32, svg_height: f32, max_size: Option<u32>) -> (u32, u32, Transform) {

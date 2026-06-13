@@ -120,7 +120,7 @@ fn parse_pairs(input: &[u8]) -> Result<Vec<Pair>, ConversionError> {
     let text = String::from_utf8_lossy(input);
     let lines: Vec<&str> = text.lines().collect();
     if lines.len() < 2 {
-        return Err(ConversionError::Parse("DXF vazio ou truncado".into()));
+        return Err(ConversionError::Parse("empty or truncated DXF".into()));
     }
     let mut pairs = Vec::with_capacity(lines.len() / 2);
     for chunk in lines.chunks(2) {
@@ -128,7 +128,7 @@ fn parse_pairs(input: &[u8]) -> Result<Vec<Pair>, ConversionError> {
             break;
         }
         let code = chunk[0].trim().parse::<i32>().map_err(|_| {
-            ConversionError::Parse(format!("group code DXF inválido: {}", chunk[0]))
+            ConversionError::Parse(format!("invalid DXF group code: {}", chunk[0]))
         })?;
         pairs.push(Pair {
             code,
@@ -140,7 +140,7 @@ fn parse_pairs(input: &[u8]) -> Result<Vec<Pair>, ConversionError> {
         .any(|pair| pair.code == 0 && pair.value == "SECTION")
     {
         return Err(ConversionError::Parse(
-            "arquivo não parece ser um DXF ASCII".into(),
+            "file does not appear to be ASCII DXF".into(),
         ));
     }
     Ok(pairs)
@@ -273,7 +273,7 @@ impl Reader<'_> {
         depth: usize,
     ) -> Result<(), ConversionError> {
         if depth > 16 {
-            return self.unsupported("INSERT", "profundidade máxima de blocos excedida");
+            return self.unsupported("INSERT", "maximum block nesting depth exceeded");
         }
         let mut index = 0;
         while index < records.len() {
@@ -330,16 +330,16 @@ impl Reader<'_> {
             "SOLID" | "TRACE" | "3DFACE" => self.emit_solid(record, transform, pen),
             "INSERT" => self.emit_insert(record, transform, depth)?,
             "DIMENSION" => {
-                self.warn("DIMENSION", "cotas foram ignoradas");
+                self.warn("DIMENSION", "dimensions were skipped");
             }
             "HATCH" => {
                 self.warn(
                     "HATCH",
-                    "preenchimento foi ignorado; use o contorno original",
+                    "fill was skipped; use the original outline",
                 );
             }
             "SEQEND" | "VERTEX" | "ENDBLK" => {}
-            kind => self.unsupported(kind, "entidade DXF não suportada")?,
+            kind => self.unsupported(kind, "unsupported DXF entity")?,
         }
         Ok(())
     }
@@ -457,7 +457,7 @@ impl Reader<'_> {
                 .collect();
             self.polyline(points, int_value(record, 70).unwrap_or(0) & 1 != 0, pen);
         } else {
-            self.warn("SPLINE", "spline sem pontos suficientes foi ignorada");
+            self.warn("SPLINE", "spline with insufficient points was skipped");
         }
     }
 
@@ -511,7 +511,7 @@ impl Reader<'_> {
             return Ok(());
         };
         let Some(block) = self.document.blocks.get(&name).cloned() else {
-            return self.unsupported("INSERT", &format!("bloco {name} não encontrado"));
+            return self.unsupported("INSERT", &format!("block {name} not found"));
         };
         let insertion = point_value(record, 10, 20).unwrap_or_default();
         let scale_x = number_value(record, 41).unwrap_or(1.0);

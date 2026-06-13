@@ -10,29 +10,29 @@ use plotconvert::{
 };
 
 const HELP: &str = "\
-plotconvert - converte entre PLT/HP-GL, DXF e SVG
+plotconvert - convert between PLT/HP-GL, DXF, and SVG
 
-USO:
-    plotconvert [OPCOES] <ARQUIVO.plt|ARQUIVO.dxf|ARQUIVO.svg>...
+USAGE:
+    plotconvert [OPTIONS] <FILE.plt|FILE.dxf|FILE.svg>...
 
-OPCOES:
-    -o, --output <ARQUIVO>          Saida para uma unica entrada
-    -d, --output-dir <DIRETORIO>    Diretorio para conversao em lote
-    -t, --to <FORMATO>              Saida: dxf, svg, plt, hpgl, hpgl2 ou png
-        --normalize-origin          Move o menor X/Y para 0,0
-        --flip-y                    Inverte o eixo Y
-        --units-per-mm <NUMERO>     Unidades HP-GL por mm (padrao: 40)
-        --units-per-inch <NUMERO>   Unidades HP-GL por polegada (padrao: 1016)
-        --png-dpi <NUMERO>          Resolucao da saida PNG (padrao: 96)
-        --png-stroke-scale <NUM>    Espessura dos tracos no PNG (padrao: 3)
-        --png-max-size <PIXELS>   Lado maior maximo do PNG (thumbnail)
-        --curve-tolerance-mm <MM>   Tolerancia de curvas (padrao: 0.05)
-        --plt-dialect <DIALETO>     Saida para PLT: hpgl2 (padrao) ou hpgl
-        --single-layer              Coloca o DXF gerado na camada 0
-        --strict                    Falha em comandos nao suportados
-        --overwrite                 Substitui arquivos existentes
-    -h, --help                      Mostra esta ajuda
-    -V, --version                   Mostra a versao
+OPTIONS:
+    -o, --output <FILE>             Output path for a single input
+    -d, --output-dir <DIRECTORY>  Directory for batch conversion
+    -t, --to <FORMAT>               Output: dxf, svg, plt, hpgl, hpgl2, or png
+        --normalize-origin          Move the minimum X/Y to 0,0
+        --flip-y                    Flip the Y axis
+        --units-per-mm <NUMBER>     HP-GL units per mm (default: 40)
+        --units-per-inch <NUMBER>   HP-GL units per inch (default: 1016)
+        --png-dpi <NUMBER>          PNG output resolution (default: 96)
+        --png-stroke-scale <NUM>    Stroke width in PNG output (default: 3)
+        --png-max-size <PIXELS>     Maximum PNG longest side (thumbnail)
+        --curve-tolerance-mm <MM>   Curve tolerance (default: 0.05)
+        --plt-dialect <DIALECT>     PLT output: hpgl2 (default) or hpgl
+        --single-layer              Put generated DXF on layer 0
+        --strict                    Fail on unsupported commands
+        --overwrite                 Replace existing files
+    -h, --help                      Show this help
+    -V, --version                   Show version
 ";
 
 #[derive(Default)]
@@ -55,8 +55,8 @@ fn main() -> ExitCode {
             }
         }
         Err(message) => {
-            eprintln!("erro: {message}");
-            eprintln!("use --help para ver as opcoes");
+            eprintln!("error: {message}");
+            eprintln!("use --help to see options");
             ExitCode::from(2)
         }
     }
@@ -65,17 +65,17 @@ fn main() -> ExitCode {
 fn run() -> Result<bool, String> {
     let cli = parse_args(env::args_os().skip(1).collect())?;
     if cli.inputs.is_empty() {
-        return Err("informe pelo menos um arquivo PLT, DXF ou SVG".into());
+        return Err("provide at least one PLT, DXF, or SVG file".into());
     }
     if cli.output.is_some() && cli.output_dir.is_some() {
-        return Err("--output e --output-dir nao podem ser usados juntos".into());
+        return Err("--output and --output-dir cannot be used together".into());
     }
     if cli.output.is_some() && cli.inputs.len() != 1 {
-        return Err("--output aceita somente uma entrada".into());
+        return Err("--output accepts only one input".into());
     }
     if let Some(directory) = &cli.output_dir {
         fs::create_dir_all(directory)
-            .map_err(|error| format!("nao foi possivel criar {}: {error}", directory.display()))?;
+            .map_err(|error| format!("could not create {}: {error}", directory.display()))?;
     }
 
     let mut had_failure = false;
@@ -83,7 +83,7 @@ fn run() -> Result<bool, String> {
         let output = output_path(input, &cli);
         if output.exists() && !cli.overwrite {
             eprintln!(
-                "erro: {} ja existe; use --overwrite para substituir",
+                "error: {} already exists; use --overwrite to replace",
                 output.display()
             );
             had_failure = true;
@@ -93,7 +93,7 @@ fn run() -> Result<bool, String> {
         match convert_file_to(input, &output, target, &cli.options) {
             Ok(report) => {
                 println!(
-                    "{} -> {} ({} itens de entrada, {} entidades, {} avisos)",
+                    "{} -> {} ({} input items, {} entities, {} warnings)",
                     input.display(),
                     output.display(),
                     report.command_count,
@@ -101,11 +101,11 @@ fn run() -> Result<bool, String> {
                     report.warning_count
                 );
                 for warning in report.warnings {
-                    eprintln!("aviso em {}: {warning}", input.display());
+                    eprintln!("warning in {}: {warning}", input.display());
                 }
             }
             Err(error) => {
-                eprintln!("erro ao converter {}: {error}", input.display());
+                eprintln!("error converting {}: {error}", input.display());
                 had_failure = true;
             }
         }
@@ -159,13 +159,13 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
                     }
                     "svg" | "svf" => OutputFormat::Svg,
                     "png" => OutputFormat::Png,
-                    _ => return Err(format!("formato de saída inválido: {value}")),
+                    _ => return Err(format!("invalid output format: {value}")),
                 });
             }
             "--units-per-mm" => {
                 if units_inch_set {
                     return Err(
-                        "--units-per-mm e --units-per-inch nao podem ser usados juntos".into(),
+                        "--units-per-mm and --units-per-inch cannot be used together".into(),
                     );
                 }
                 units_mm_set = true;
@@ -175,7 +175,7 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
             "--units-per-inch" => {
                 if units_mm_set {
                     return Err(
-                        "--units-per-mm e --units-per-inch nao podem ser usados juntos".into(),
+                        "--units-per-mm and --units-per-inch cannot be used together".into(),
                     );
                 }
                 units_inch_set = true;
@@ -206,7 +206,7 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
                 cli.options.plt_dialect = match value.as_str() {
                     "hpgl" | "hp-gl" => PltDialect::Hpgl,
                     "hpgl2" | "hp-gl2" | "hp-gl/2" => PltDialect::Hpgl2,
-                    _ => return Err(format!("dialeto PLT inválido: {value}")),
+                    _ => return Err(format!("invalid PLT dialect: {value}")),
                 };
             }
             "--normalize-origin" => cli.options.normalize_origin = true,
@@ -219,7 +219,7 @@ fn parse_args(arguments: Vec<OsString>) -> Result<Cli, String> {
                     .extend(arguments[index + 1..].iter().map(PathBuf::from));
                 break;
             }
-            _ if text.starts_with('-') => return Err(format!("opcao desconhecida: {text}")),
+            _ if text.starts_with('-') => return Err(format!("unknown option: {text}")),
             _ => cli.inputs.push(PathBuf::from(argument)),
         }
         index += 1;
@@ -234,14 +234,14 @@ fn required_value<'a>(
 ) -> Result<&'a OsString, String> {
     arguments
         .get(index)
-        .ok_or_else(|| format!("falta valor para {option}"))
+        .ok_or_else(|| format!("missing value for {option}"))
 }
 
 fn parse_number(arguments: &[OsString], index: usize, option: &str) -> Result<f64, String> {
     let value = required_value(arguments, index, option)?;
     value.to_string_lossy().parse().map_err(|_| {
         format!(
-            "valor numerico invalido para {option}: {}",
+            "invalid numeric value for {option}: {}",
             value.to_string_lossy()
         )
     })
@@ -251,7 +251,7 @@ fn parse_positive_u32(arguments: &[OsString], index: usize, option: &str) -> Res
     let value = parse_number(arguments, index, option)?;
     if !value.is_finite() || value <= 0.0 || value.fract() != 0.0 {
         return Err(format!(
-            "valor inteiro positivo invalido para {option}: {}",
+            "invalid positive integer for {option}: {}",
             required_value(arguments, index, option)?.to_string_lossy()
         ));
     }
@@ -295,7 +295,7 @@ fn target_format(input: &Path, output: &Path, cli: &Cli) -> Result<OutputFormat,
         return Ok(target);
     }
     let data = fs::read(input)
-        .map_err(|error| format!("não foi possível ler {}: {error}", input.display()))?;
+        .map_err(|error| format!("could not read {}: {error}", input.display()))?;
     detect_format(input, &data)
         .map(default_output)
         .map_err(|error| error.to_string())

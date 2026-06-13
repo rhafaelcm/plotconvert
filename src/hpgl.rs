@@ -168,11 +168,11 @@ impl<'a> Interpreter<'a> {
             _ => {
                 if self.options.strict {
                     return Err(ConversionError::Parse(format!(
-                        "comando {name} não suportado no byte {}",
+                        "unsupported command {name} at byte {}",
                         command.offset
                     )));
                 }
-                self.warn(&name, "comando não suportado");
+                self.warn(&name, "unsupported command");
             }
         }
         Ok(())
@@ -316,7 +316,7 @@ impl<'a> Interpreter<'a> {
             })
         } else {
             if numbers.len() >= 4 {
-                self.warn("SC", "intervalo de escala nulo foi ignorado");
+                self.warn("SC", "null scale interval was ignored");
             }
             None
         };
@@ -726,10 +726,10 @@ impl<'a> Interpreter<'a> {
     fn malformed_pe(&mut self, offset: usize) -> Result<(), ConversionError> {
         if self.options.strict {
             Err(ConversionError::Parse(format!(
-                "dados PE malformados no byte {offset}"
+                "malformed PE data at byte {offset}"
             )))
         } else {
-            self.warn("PE", "dados compactados truncados ou inválidos");
+            self.warn("PE", "truncated or invalid compressed data");
             Ok(())
         }
     }

@@ -2,333 +2,334 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Conversor entre DXF ASCII, HP-GL/HP-GL2 (`.plt`, `.hpgl`) e SVG (`.svg`, `.svf`),
-escrito em Rust.
+English documentation. For Portuguese, see [README-BR.md](README-BR.md).
 
-O conversor suporta seis rotas de conversão cruzada entre formatos vetoriais,
-além de **PNG** como saída raster a partir de qualquer entrada:
+Converter between ASCII DXF, HP-GL/HP-GL2 (`.plt`, `.hpgl`), and SVG (`.svg`, `.svf`),
+written in Rust.
+
+The converter supports six cross-format vector conversion routes,
+plus **PNG** as raster output from any input:
 
 - **DXF** → PLT, SVG, PNG
 - **PLT/HP-GL** → DXF, SVG, PNG
 - **SVG/SVF** → DXF, PLT, PNG
 
-| Entrada | Saídas |
+| Input | Outputs |
 | --- | --- |
-| DXF (`.dxf`) | PLT, SVG ou PNG |
-| PLT/HP-GL (`.plt`, `.hpgl`) | DXF, SVG ou PNG |
-| SVG/SVF (`.svg`, `.svf`) | DXF, PLT ou PNG |
+| DXF (`.dxf`) | PLT, SVG, or PNG |
+| PLT/HP-GL (`.plt`, `.hpgl`) | DXF, SVG, or PNG |
+| SVG/SVF (`.svg`, `.svf`) | DXF, PLT, or PNG |
 
-## Uso
+## Usage
 
 ```bash
-plotconvert desenho.plt
-plotconvert desenho.dxf
-plotconvert desenho.svg
-plotconvert --to svg desenho.dxf
-plotconvert --to svg desenho.plt
-plotconvert --to plt desenho.svg
-plotconvert --to dxf desenho.svg
-plotconvert --to png desenho.dxf
+plotconvert drawing.plt
+plotconvert drawing.dxf
+plotconvert drawing.svg
+plotconvert --to svg drawing.dxf
+plotconvert --to svg drawing.plt
+plotconvert --to plt drawing.svg
+plotconvert --to dxf drawing.svg
+plotconvert --to png drawing.dxf
 ```
 
-O formato da entrada é detectado pela extensão e, quando necessário, pelo
-conteúdo.
+The input format is detected from the file extension and, when needed, from
+the file content.
 
-**Conversões suportadas** — use `--to` ou a extensão informada em `--output`
-para escolher o formato de saída:
+**Supported conversions** — use `--to` or the extension given in `--output`
+to choose the output format:
 
-- DXF → PLT, SVG ou PNG;
-- PLT/HP-GL → DXF, SVG ou PNG;
-- SVG/SVF → DXF, PLT ou PNG.
+- DXF → PLT, SVG, or PNG;
+- PLT/HP-GL → DXF, SVG, or PNG;
+- SVG/SVF → DXF, PLT, or PNG.
 
-PNG é exclusivamente **saída**; arquivos `.png` não são aceitos como entrada.
+PNG is **output only**; `.png` files are not accepted as input.
 
-**Saída padrão** (sem `--to` nem extensão explícita em `--output`):
+**Default output** (without `--to` or an explicit extension in `--output`):
 
-- entrada `.plt` ou `.hpgl` → `.dxf`;
-- entrada `.dxf` → `.plt` (HP-GL/2);
-- entrada `.svg` ou `.svf` → `.dxf`.
+- `.plt` or `.hpgl` input → `.dxf`;
+- `.dxf` input → `.plt` (HP-GL/2);
+- `.svg` or `.svf` input → `.dxf`.
 
-Sem `--output` ou `--output-dir`, o arquivo convertido é criado ao lado da
-entrada, com o mesmo nome-base e a nova extensão.
+Without `--output` or `--output-dir`, the converted file is created next to the
+input, with the same base name and the new extension.
 
-Execute `plotconvert --help` para consultar todas as opções.
+Run `plotconvert --help` to see all options.
 
-## Parâmetros
+## Options
 
-### `-t, --to <FORMATO>`
+### `-t, --to <FORMAT>`
 
-Escolhe explicitamente o formato de saída. É a opção principal para selecionar
-o destino da conversão.
+Explicitly chooses the output format. This is the main option for selecting
+the conversion destination.
 
-Valores aceitos:
+Accepted values:
 
-- `dxf`: gera DXF ASCII R12;
-- `svg` ou `svf`: gera SVG;
-- `png`: gera imagem PNG rasterizada;
-- `plt`: gera PLT usando o valor de `--plt-dialect`;
-- `hpgl`: gera PLT em HP-GL clássico;
-- `hpgl2`: gera PLT em HP-GL/2.
+- `dxf`: produces ASCII DXF R12;
+- `svg` or `svf`: produces SVG;
+- `png`: produces a rasterized PNG image;
+- `plt`: produces PLT using the `--plt-dialect` value;
+- `hpgl`: produces PLT in classic HP-GL;
+- `hpgl2`: produces PLT in HP-GL/2.
 
 ```bash
 # DXF → PLT (HP-GL/2)
-plotconvert --to plt desenho.dxf
+plotconvert --to plt drawing.dxf
 
 # DXF → SVG
-plotconvert --to svg desenho.dxf
+plotconvert --to svg drawing.dxf
 
 # DXF → PNG
-plotconvert --to png desenho.dxf
+plotconvert --to png drawing.dxf
 
 # PLT → DXF
-plotconvert --to dxf desenho.plt
+plotconvert --to dxf drawing.plt
 
 # PLT → SVG
-plotconvert --to svg desenho.plt
+plotconvert --to svg drawing.plt
 
 # PLT → PNG
-plotconvert --to png desenho.plt
+plotconvert --to png drawing.plt
 
 # SVG → DXF
-plotconvert --to dxf desenho.svg
+plotconvert --to dxf drawing.svg
 
-# SVG → PLT (HP-GL clássico)
-plotconvert --to hpgl desenho.svg
+# SVG → PLT (classic HP-GL)
+plotconvert --to hpgl drawing.svg
 
 # SVG → PNG
-plotconvert --to png desenho.svg
+plotconvert --to png drawing.svg
 ```
 
-Quando `--to` é usado, ele tem prioridade sobre a extensão informada em
+When `--to` is used, it takes precedence over the extension given in
 `--output`.
 
-### `-o, --output <ARQUIVO>`
+### `-o, --output <FILE>`
 
-Define o caminho exato do arquivo de saída. Só pode ser usado quando existe
-uma única entrada. Quando `--to` não é informado, a extensão da saída escolhe
-o formato.
-
-```bash
-plotconvert desenho.plt --output resultado.dxf
-plotconvert desenho.dxf -o resultado.plt
-plotconvert desenho.dxf -o resultado.svg
-plotconvert desenho.plt -o resultado.svg
-plotconvert desenho.svg -o resultado.dxf
-plotconvert desenho.svg -o resultado.plt
-plotconvert desenho.dxf -o preview.png
-```
-
-Não pode ser combinado com `--output-dir`.
-
-### `-d, --output-dir <DIRETORIO>`
-
-Define o diretório de destino. Pode ser usado com uma ou várias entradas e o
-diretório é criado automaticamente quando não existe.
+Sets the exact output file path. Can only be used with a single input. When
+`--to` is not given, the output extension selects the format.
 
 ```bash
-plotconvert --to svg --output-dir convertidos molde.plt desenho.dxf
+plotconvert drawing.plt --output result.dxf
+plotconvert drawing.dxf -o result.plt
+plotconvert drawing.dxf -o result.svg
+plotconvert drawing.plt -o result.svg
+plotconvert drawing.svg -o result.dxf
+plotconvert drawing.svg -o result.plt
+plotconvert drawing.dxf -o preview.png
 ```
 
-Cada saída mantém o nome-base da entrada. Por exemplo, `molde.plt` gera
-`convertidos/molde.svg` quando usado com `--to svg`.
+Cannot be combined with `--output-dir`.
 
-Para conversões em lote com uma saída específica, use sempre `--to`.
+### `-d, --output-dir <DIRECTORY>`
 
-### `--plt-dialect <DIALETO>`
-
-Escolhe o dialeto usado em qualquer conversão cuja saída seja PLT.
-
-Valores aceitos:
-
-- `hpgl2`, `hp-gl2` ou `hp-gl/2`: gera HP-GL/2 com preâmbulo PCL, declaração
-  de página, quantidade de canetas, cores e larguras. É o padrão.
-- `hpgl` ou `hp-gl`: gera HP-GL clássico, com comandos terminados por `;` e
-  sem o preâmbulo HP-GL/2.
+Sets the destination directory. Can be used with one or many inputs; the
+directory is created automatically when it does not exist.
 
 ```bash
-# Saída HP-GL/2, comportamento padrão
-plotconvert desenho.dxf
-plotconvert --plt-dialect hpgl2 desenho.dxf
-
-# Saída HP-GL clássica
-plotconvert --plt-dialect hpgl desenho.dxf
+plotconvert --to svg --output-dir converted pattern.plt drawing.dxf
 ```
 
-Essa opção não altera conversões cuja entrada seja PLT, nem saídas DXF ou SVG.
+Each output keeps the input base name. For example, `pattern.plt` produces
+`converted/pattern.svg` when used with `--to svg`.
 
-### `--units-per-mm <NUMERO>`
+For batch conversions with a specific output, always use `--to`.
 
-Define quantas unidades HP-GL representam um milímetro. O padrão é `40`,
-equivalente a `1016` unidades por polegada.
+### `--plt-dialect <DIALECT>`
 
-Na leitura de PLT, divide as coordenadas HP-GL por esse valor. Na geração de
-PLT, multiplica as coordenadas em milímetros por esse valor. Não altera
-diretamente a escala de DXF para SVG ou SVG para DXF.
+Chooses the dialect used for any conversion whose output is PLT.
+
+Accepted values:
+
+- `hpgl2`, `hp-gl2`, or `hp-gl/2`: produces HP-GL/2 with PCL preamble, page
+  declaration, pen count, colors, and widths. This is the default.
+- `hpgl` or `hp-gl`: produces classic HP-GL, with commands terminated by `;`
+  and without the HP-GL/2 preamble.
 
 ```bash
-plotconvert --units-per-mm 40 desenho.plt
-plotconvert --units-per-mm 100 desenho.dxf
+# HP-GL/2 output, default behavior
+plotconvert drawing.dxf
+plotconvert --plt-dialect hpgl2 drawing.dxf
+
+# Classic HP-GL output
+plotconvert --plt-dialect hpgl drawing.dxf
 ```
 
-O valor deve ser maior que zero. Normalmente não é necessário alterá-lo.
+This option does not change conversions whose input is PLT, nor DXF or SVG
+outputs.
 
-Não pode ser combinado com `--units-per-inch`.
+### `--units-per-mm <NUMBER>`
 
-### `--units-per-inch <NUMERO>`
+Sets how many HP-GL units represent one millimeter. The default is `40`,
+equivalent to `1016` units per inch.
 
-Define quantas unidades HP-GL representam uma polegada. O padrão implícito é
-`1016`, equivalente a `--units-per-mm 40`.
-
-Na leitura de PLT, divide as coordenadas HP-GL por `valor / 25.4`. Na geração
-de PLT, multiplica as coordenadas em milímetros por `valor / 25.4`. Não altera
-diretamente a escala de DXF para SVG ou SVG para DXF.
+When reading PLT, HP-GL coordinates are divided by this value. When generating
+PLT, coordinates in millimeters are multiplied by this value. It does not
+directly change the scale of DXF to SVG or SVG to DXF.
 
 ```bash
-plotconvert --units-per-inch 1016 desenho.plt
-plotconvert --units-per-inch 1016 desenho.dxf
-plotconvert --units-per-inch 2032 desenho.plt
+plotconvert --units-per-mm 40 drawing.plt
+plotconvert --units-per-mm 100 drawing.dxf
 ```
 
-O valor deve ser maior que zero. Use esta opção quando a resolução do plotter
-for conhecida em unidades por polegada.
+The value must be greater than zero. You usually do not need to change it.
 
-Não pode ser combinado com `--units-per-mm`.
+Cannot be combined with `--units-per-inch`.
 
-### `--png-dpi <NUMERO>`
+### `--units-per-inch <NUMBER>`
 
-Define a resolução da imagem PNG, em pontos por polegada. O padrão é `96`.
+Sets how many HP-GL units represent one inch. The implicit default is `1016`,
+equivalent to `--units-per-mm 40`.
 
-Afeta apenas conversões cuja saída seja PNG. Valores maiores geram imagens com
-mais pixels e arquivos potencialmente maiores.
+When reading PLT, HP-GL coordinates are divided by `value / 25.4`. When
+generating PLT, coordinates in millimeters are multiplied by `value / 25.4`.
+It does not directly change the scale of DXF to SVG or SVG to DXF.
 
 ```bash
-plotconvert --to png desenho.dxf
-plotconvert --to png --png-dpi 150 desenho.plt
-plotconvert --to png --png-dpi 300 desenho.svg
+plotconvert --units-per-inch 1016 drawing.plt
+plotconvert --units-per-inch 1016 drawing.dxf
+plotconvert --units-per-inch 2032 drawing.plt
 ```
 
-O valor deve ser maior que zero.
+The value must be greater than zero. Use this option when the plotter resolution
+is known in units per inch.
 
-### `--png-stroke-scale <NUMERO>`
+Cannot be combined with `--units-per-mm`.
 
-Multiplica a espessura dos traços na saída PNG. O padrão é `3`, deixando os
-contornos mais visíveis na rasterização (traços finos em milímetros viram poucos
-pixels em 96 DPI).
+### `--png-dpi <NUMBER>`
 
-Afeta apenas conversões cuja saída seja PNG. A exportação SVG não é alterada.
+Sets the PNG image resolution in dots per inch. The default is `96`.
+
+Applies only to conversions whose output is PNG. Higher values produce images
+with more pixels and potentially larger files.
 
 ```bash
-plotconvert --to png desenho.dxf
-plotconvert --to png --png-stroke-scale 2 desenho.dxf
-plotconvert --to png --png-stroke-scale 4 --png-dpi 150 desenho.plt
+plotconvert --to png drawing.dxf
+plotconvert --to png --png-dpi 150 drawing.plt
+plotconvert --to png --png-dpi 300 drawing.svg
 ```
 
-O valor deve ser maior que zero. Use `1` para manter a mesma espessura relativa
-da exportação SVG.
+The value must be greater than zero.
+
+### `--png-stroke-scale <NUMBER>`
+
+Multiplies stroke width in PNG output. The default is `3`, making outlines more
+visible when rasterized (thin millimeter strokes become only a few pixels at
+96 DPI).
+
+Applies only to conversions whose output is PNG. SVG export is not affected.
+
+```bash
+plotconvert --to png drawing.dxf
+plotconvert --to png --png-stroke-scale 2 drawing.dxf
+plotconvert --to png --png-stroke-scale 4 --png-dpi 150 drawing.plt
+```
+
+The value must be greater than zero. Use `1` to keep the same relative stroke
+width as SVG export.
 
 ### `--png-max-size <PIXELS>`
 
-Limita o **lado maior** (largura ou altura) da imagem PNG, em pixels. A imagem
-é reduzida proporcionalmente quando excede esse valor; desenhos já menores **não
-são ampliados**.
+Limits the **longest side** (width or height) of the PNG image, in pixels. The
+image is scaled down proportionally when it exceeds this value; drawings that
+are already smaller are **not upscaled**.
 
-Afeta apenas conversões cuja saída seja PNG. Útil para gerar thumbnails sem
-criar imagens muito grandes a partir de desenhos extensos.
+Applies only to conversions whose output is PNG. Useful for generating
+thumbnails without creating very large images from extensive drawings.
 
-O tamanho base vem de `--png-dpi` e das dimensões do desenho; `--png-max-size`
-aplica um teto depois dessa rasterização.
+The base size comes from `--png-dpi` and the drawing dimensions; `--png-max-size`
+applies a cap after that rasterization sizing.
 
 ```bash
-plotconvert --to png --png-max-size 512 desenho.dxf
-plotconvert --to png --png-max-size 256 --png-dpi 96 molde.plt
-plotconvert --to png --png-max-size 1024 desenho.svg
+plotconvert --to png --png-max-size 512 drawing.dxf
+plotconvert --to png --png-max-size 256 --png-dpi 96 pattern.plt
+plotconvert --to png --png-max-size 1024 drawing.svg
 ```
 
-O valor deve ser um inteiro maior que zero. Sem essa opção, não há limite de
-tamanho.
+The value must be a positive integer. Without this option, there is no size
+limit.
 
 ### `--curve-tolerance-mm <MM>`
 
-Define a tolerância, em milímetros, usada para aproximar curvas que não
-possuem representação direta no formato de destino. O padrão é `0.05`.
+Sets the tolerance, in millimeters, used to approximate curves that have no
+direct representation in the destination format. The default is `0.05`.
 
-Afeta principalmente `SPLINE`, `ELLIPSE`, curvas Bézier, paths SVG e
-círculos/arcos submetidos a transformações não uniformes.
+Mainly affects `SPLINE`, `ELLIPSE`, Bézier curves, SVG paths, and
+circles/arcs under non-uniform transforms.
 
 ```bash
-# Mais precisão e arquivos potencialmente maiores
-plotconvert --curve-tolerance-mm 0.01 desenho.dxf
+# More precision and potentially larger files
+plotconvert --curve-tolerance-mm 0.01 drawing.dxf
 
-# Menos pontos e arquivos menores
-plotconvert --curve-tolerance-mm 0.2 desenho.dxf
+# Fewer points and smaller files
+plotconvert --curve-tolerance-mm 0.2 drawing.dxf
 ```
 
-Valores menores geram mais segmentos. O valor deve ser maior que zero.
+Smaller values produce more segments. The value must be greater than zero.
 
 ### `--normalize-origin`
 
-Move toda a geometria para que o menor X e o menor Y sejam `0,0`, preservando
-as dimensões do desenho.
+Moves all geometry so the minimum X and minimum Y are `0,0`, preserving the
+drawing dimensions.
 
 ```bash
-plotconvert --normalize-origin desenho.dxf
+plotconvert --normalize-origin drawing.dxf
 ```
 
-É útil para máquinas ou programas que não trabalham bem com coordenadas
-negativas ou desenhos afastados da origem.
+Useful for machines or programs that do not handle negative coordinates or
+drawings far from the origin well.
 
 ### `--flip-y`
 
-Inverte o sinal do eixo Y antes de gerar a saída.
+Inverts the Y axis sign before generating output.
 
 ```bash
-plotconvert --flip-y desenho.plt
-plotconvert --flip-y --normalize-origin desenho.dxf
+plotconvert --flip-y drawing.plt
+plotconvert --flip-y --normalize-origin drawing.dxf
 ```
 
-Quando combinado com `--normalize-origin`, a inversão é aplicada primeiro e a
-geometria resultante é reposicionada em `0,0`.
+When combined with `--normalize-origin`, the flip is applied first and the
+resulting geometry is repositioned at `0,0`.
 
 ### `--single-layer`
 
-Aplica-se a qualquer conversão com saída DXF. Coloca todas as entidades na
-camada `0`.
+Applies to any conversion with DXF output. Places all entities on layer `0`.
 
 ```bash
-plotconvert --single-layer desenho.plt
+plotconvert --single-layer drawing.plt
 ```
 
-Sem essa opção, cada caneta ou estilo de traço é exportado para uma camada:
+Without this option, each pen or stroke style is exported to a layer:
 `PEN_001`, `PEN_002`, etc.
 
 ### `--strict`
 
-Interrompe a conversão ao encontrar um comando HP-GL, entidade DXF ou elemento
-SVG não suportado ou malformado.
+Stops conversion when an unsupported or malformed HP-GL command, DXF entity, or
+SVG element is encountered.
 
 ```bash
-plotconvert --strict desenho.dxf
+plotconvert --strict drawing.dxf
 ```
 
-Sem essa opção, o conversor continua processando o restante do arquivo e
-mostra avisos em `stderr`. Em DXF, por exemplo, `DIMENSION` e o preenchimento
-de `HATCH` são ignorados com aviso.
+Without this option, the converter continues processing the rest of the file
+and shows warnings on `stderr`. In DXF, for example, `DIMENSION` and `HATCH`
+fill are skipped with a warning.
 
 ### `--overwrite`
 
-Permite substituir arquivos de saída existentes.
+Allows replacing existing output files.
 
 ```bash
-plotconvert --overwrite desenho.plt
-plotconvert --to svg --output-dir convertidos --overwrite *.dxf
+plotconvert --overwrite drawing.plt
+plotconvert --to svg --output-dir converted --overwrite *.dxf
 ```
 
-Sem essa opção, uma saída existente não é alterada e essa conversão é
-reportada como erro.
+Without this option, an existing output is not changed and that conversion is
+reported as an error.
 
 ### `-h, --help`
 
-Mostra a ajuda resumida da linha de comando.
+Shows the command-line help summary.
 
 ```bash
 plotconvert --help
@@ -336,7 +337,7 @@ plotconvert --help
 
 ### `-V, --version`
 
-Mostra a versão do conversor.
+Shows the converter version.
 
 ```bash
 plotconvert --version
@@ -344,256 +345,255 @@ plotconvert --version
 
 ### `--`
 
-Encerra o processamento de opções. É necessário para converter um arquivo
-cujo nome começa com hífen.
+Ends option processing. Required to convert a file whose name starts with a
+hyphen.
 
 ```bash
-plotconvert -- -desenho.plt
+plotconvert -- -drawing.plt
 ```
 
-## Exemplos
+## Examples
 
 ### DXF → PLT
 
-Converter um DXF para HP-GL/2 (saída padrão):
+Convert a DXF to HP-GL/2 (default output):
 
 ```bash
-plotconvert molde.dxf
-plotconvert --to hpgl2 molde.dxf
+plotconvert pattern.dxf
+plotconvert --to hpgl2 pattern.dxf
 ```
 
-Converter um DXF para HP-GL clássico:
+Convert a DXF to classic HP-GL:
 
 ```bash
-plotconvert --plt-dialect hpgl molde.dxf
+plotconvert --plt-dialect hpgl pattern.dxf
 ```
 
 ### DXF → SVG
 
 ```bash
-plotconvert --to svg molde.dxf
+plotconvert --to svg pattern.dxf
 ```
 
 ### DXF → PNG
 
 ```bash
-plotconvert --to png molde.dxf
-plotconvert --to png --png-dpi 300 molde.dxf
+plotconvert --to png pattern.dxf
+plotconvert --to png --png-dpi 300 pattern.dxf
 ```
 
 ### PLT → DXF
 
-Converter um PLT para DXF R12 (saída padrão):
+Convert a PLT to DXF R12 (default output):
 
 ```bash
-plotconvert molde.plt
+plotconvert pattern.plt
 ```
 
-Gerar um DXF simples, sem camadas por caneta:
+Generate a simple DXF without per-pen layers:
 
 ```bash
-plotconvert --single-layer molde.plt
+plotconvert --single-layer pattern.plt
 ```
 
 ### PLT → SVG
 
 ```bash
-plotconvert --to svg molde.plt
+plotconvert --to svg pattern.plt
 ```
 
 ### PLT → PNG
 
 ```bash
-plotconvert --to png molde.plt
+plotconvert --to png pattern.plt
 ```
 
 ### SVG → DXF
 
-Converter SVG para DXF (saída padrão):
+Convert SVG to DXF (default output):
 
 ```bash
-plotconvert desenho.svg
-plotconvert --to dxf desenho.svg
+plotconvert drawing.svg
+plotconvert --to dxf drawing.svg
 ```
 
-Arquivos com extensão `.svf` também são aceitos como entrada SVG.
+Files with the `.svf` extension are also accepted as SVG input.
 
 ### SVG → PLT
 
 ```bash
-plotconvert --to plt desenho.svg
-plotconvert --to hpgl desenho.svf
+plotconvert --to plt drawing.svg
+plotconvert --to hpgl drawing.svf
 ```
 
 ### SVG → PNG
 
 ```bash
-plotconvert --to png desenho.svg
-plotconvert desenho.svg -o preview.png
+plotconvert --to png drawing.svg
+plotconvert drawing.svg -o preview.png
 ```
 
-### Opções comuns
+### Common options
 
-Converter vários arquivos em lote:
+Convert several files in batch:
 
 ```bash
-plotconvert --to svg --output-dir convertidos molde.plt desenho.dxf bolso.dxf
+plotconvert --to svg --output-dir converted pattern.plt drawing.dxf pocket.dxf
 ```
 
-Normalizar a origem, inverter Y e substituir uma saída existente:
+Normalize origin, flip Y, and replace an existing output:
 
 ```bash
-plotconvert --normalize-origin --flip-y --overwrite molde.dxf
+plotconvert --normalize-origin --flip-y --overwrite pattern.dxf
 ```
 
-## Entrada DXF
+## DXF input
 
-Saídas possíveis: **PLT** (padrão), **SVG** e **PNG**.
+Possible outputs: **PLT** (default), **SVG**, and **PNG**.
 
-O leitor aceita DXF ASCII R12, R14 e versões posteriores com estrutura por
-group codes. São convertidos:
+The reader accepts ASCII DXF R12, R14, and later versions with group-code
+structure. Supported entities:
 
 - `LINE`, `ARC`, `CIRCLE`, `POINT`;
-- `POLYLINE` e `LWPOLYLINE`, incluindo segmentos com bulge;
-- `ELLIPSE` e `SPLINE`, aproximadas por trajetórias;
-- `TEXT`, `MTEXT`, `ATTRIB` e `ATTDEF`;
-- `SOLID`, `TRACE`, `3DFACE`, `BLOCK` e `INSERT`.
+- `POLYLINE` and `LWPOLYLINE`, including bulge segments;
+- `ELLIPSE` and `SPLINE`, approximated as paths;
+- `TEXT`, `MTEXT`, `ATTRIB`, and `ATTDEF`;
+- `SOLID`, `TRACE`, `3DFACE`, `BLOCK`, and `INSERT`.
 
-As unidades declaradas em `$INSUNITS` são convertidas para milímetros.
-DXFs sem unidade declarada são interpretados como milímetros.
+Units declared in `$INSUNITS` are converted to millimeters.
+DXFs without declared units are interpreted as millimeters.
 
-`DIMENSION` é ignorado para não duplicar geometria de cotas. O preenchimento
-de `HATCH` também é ignorado; seus contornos originais continuam sendo
-convertidos. Use `--strict` para transformar entidades não suportadas em erro.
+`DIMENSION` is skipped to avoid duplicating dimension geometry. `HATCH` fill is
+also skipped; its original outlines are still converted. Use `--strict` to turn
+unsupported entities into errors.
 
 ### DXF → PLT
 
-O padrão de saída é HP-GL/2. Use `--plt-dialect hpgl` para gerar HP-GL
-clássico.
+The default output is HP-GL/2. Use `--plt-dialect hpgl` to generate classic
+HP-GL.
 
 ### DXF → SVG
 
-`ELLIPSE` e `SPLINE` são aproximadas por segmentos quando necessário. A
-precisão é controlada por `--curve-tolerance-mm`. O SVG gerado utiliza
-dimensões em milímetros e preserva cores, larguras, canetas, textos, círculos,
-arcos e polylines.
+`ELLIPSE` and `SPLINE` are approximated by segments when needed. Precision is
+controlled by `--curve-tolerance-mm`. The generated SVG uses millimeter
+dimensions and preserves colors, widths, pens, text, circles, arcs, and
+polylines.
 
 ### DXF → PNG
 
-Rasteriza o desenho com as mesmas cores e espessuras da exportação SVG. Use
-`--png-dpi` para controlar a resolução.
+Rasterizes the drawing with the same colors and stroke widths as SVG export.
+Use `--png-dpi` to control resolution.
 
-## Entrada PLT/HP-GL
+## PLT/HP-GL input
 
-Saídas possíveis: **DXF** (padrão), **SVG** e **PNG**.
+Possible outputs: **DXF** (default), **SVG**, and **PNG**.
 
-São aceitos HP-GL clássico e HP-GL/2, incluindo arquivos com comandos
-concatenados, preâmbulos PCL e coordenadas compactadas `PE`. Arquivos com
-extensão `.hpgl` são tratados da mesma forma que `.plt`.
+Classic HP-GL and HP-GL/2 are supported, including files with concatenated
+commands, PCL preambles, and compressed `PE` coordinates. Files with the
+`.hpgl` extension are treated the same as `.plt`.
 
 ### PLT → DXF
 
-O DXF gerado é ASCII R12 e usa milímetros. Por padrão:
+The generated DXF is ASCII R12 and uses millimeters. By default:
 
-- `40` unidades HP-GL equivalem a `1 mm` (`1016` unidades por polegada, padrão);
-- canetas são exportadas como camadas `PEN_001`, `PEN_002`, etc.;
-- cores e larguras de caneta são preservadas quando declaradas;
-- trajetórias viram `POLYLINE`;
-- círculos, arcos e textos usam entidades DXF nativas quando possível.
+- `40` HP-GL units equal `1 mm` (`1016` units per inch, default);
+- pens are exported as layers `PEN_001`, `PEN_002`, etc.;
+- pen colors and widths are preserved when declared;
+- paths become `POLYLINE`;
+- circles, arcs, and text use native DXF entities when possible.
 
-Use `--single-layer` para colocar todas as entidades na camada `0`.
+Use `--single-layer` to place all entities on layer `0`.
 
 ### PLT → SVG
 
-As coordenadas HP-GL são convertidas para milímetros conforme
-`--units-per-mm` ou `--units-per-inch`. O escritor SVG preserva cores,
-larguras, canetas, textos, círculos, arcos e polylines.
+HP-GL coordinates are converted to millimeters according to `--units-per-mm`
+or `--units-per-inch`. The SVG writer preserves colors, widths, pens, text,
+circles, arcs, and polylines.
 
 ### PLT → PNG
 
-Mesma aparência visual da exportação SVG, convertida para bitmap com fundo
-transparente.
+Same visual appearance as SVG export, converted to a bitmap with a transparent
+background.
 
-## Entrada SVG/SVF
+## SVG/SVF input
 
-Saídas possíveis: **DXF** (padrão), **PLT** e **PNG**.
+Possible outputs: **DXF** (default), **PLT**, and **PNG**.
 
-Arquivos com extensão `.svf` são aceitos como alias de SVG para compatibilidade
-com a grafia indicada, desde que o conteúdo seja XML SVG.
+Files with the `.svf` extension are accepted as an SVG alias for compatibility
+with the indicated spelling, as long as the content is SVG XML.
 
-### Leitura SVG
+### SVG reading
 
-O leitor SVG aceita unidades em `mm`, `cm`, `in`, `pt`, `pc` e pixels CSS a
-96 DPI. `width`, `height` e `viewBox` são usados para converter o desenho para
-milímetros.
+The SVG reader accepts units in `mm`, `cm`, `in`, `pt`, `pc`, and CSS pixels at
+96 DPI. `width`, `height`, and `viewBox` are used to convert the drawing to
+millimeters.
 
-Elementos suportados:
+Supported elements:
 
-- `line`, `polyline`, `polygon` e `rect`, incluindo cantos arredondados;
-- `circle` e `ellipse`;
-- `path` com comandos `M`, `L`, `H`, `V`, `C`, `S`, `Q`, `T`, `A` e `Z`,
-  absolutos ou relativos;
+- `line`, `polyline`, `polygon`, and `rect`, including rounded corners;
+- `circle` and `ellipse`;
+- `path` with commands `M`, `L`, `H`, `V`, `C`, `S`, `Q`, `T`, `A`, and `Z`,
+  absolute or relative;
 - `text`;
-- grupos `g`, links `a` e `symbol`;
-- transformações `matrix`, `translate`, `scale`, `rotate`, `skewX` e `skewY`;
-- cores hexadecimais, nomes básicos, `rgb()`, estilos inline e
+- `g` groups, `a` links, and `symbol`;
+- `matrix`, `translate`, `scale`, `rotate`, `skewX`, and `skewY` transforms;
+- hexadecimal colors, basic names, `rgb()`, inline styles, and
   `stroke-width`.
 
-Curvas Bézier, arcos elípticos e elipses são aproximados por polylines quando
-o destino não oferece uma entidade equivalente. A precisão é controlada por
+Bézier curves, elliptical arcs, and ellipses are approximated as polylines when
+the destination has no equivalent entity. Precision is controlled by
 `--curve-tolerance-mm`.
 
 ### SVG → DXF
 
-O DXF gerado é ASCII R12 e usa milímetros. Canetas e estilos de traço viram
-camadas `PEN_001`, `PEN_002`, etc., a menos que `--single-layer` seja usado.
+The generated DXF is ASCII R12 and uses millimeters. Pens and stroke styles
+become layers `PEN_001`, `PEN_002`, etc., unless `--single-layer` is used.
 
 ### SVG → PLT
 
-Curvas sem equivalente direto em HP-GL são aproximadas por trajetórias. O
-padrão de saída é HP-GL/2; use `--plt-dialect hpgl` para HP-GL clássico.
+Curves without a direct HP-GL equivalent are approximated as paths. The default
+output is HP-GL/2; use `--plt-dialect hpgl` for classic HP-GL.
 
 ### SVG → PNG
 
-Rasteriza o desenho interpretado a partir do SVG de entrada. Texto depende das
-fontes instaladas no sistema.
+Rasterizes the drawing interpreted from the input SVG. Text depends on fonts
+installed on the system.
 
-## Saída PNG
+## PNG output
 
-PNG está disponível **somente como formato de saída**, a partir de entradas
-DXF, PLT ou SVG.
+PNG is available **only as an output format**, from DXF, PLT, or SVG input.
 
-O conversor gera um SVG intermediário com a mesma lógica de
-[`svg_writer.rs`](src/svg_writer.rs) e rasteriza com resvg. A imagem resultante
-usa fundo transparente, preserva cores e respeita `--png-dpi` (padrão `96`),
-`--png-stroke-scale` (padrão `3`) e, opcionalmente, `--png-max-size` para limitar
-o lado maior (ideal para thumbnails).
+The converter generates an intermediate SVG using the same logic as
+[`svg_writer.rs`](src/svg_writer.rs) and rasterizes it with resvg. The resulting
+image has a transparent background, preserves colors, and respects `--png-dpi`
+(default `96`), `--png-stroke-scale` (default `3`), and optionally
+`--png-max-size` to limit the longest side (ideal for thumbnails).
 
 ```bash
-plotconvert --to png desenho.dxf
-plotconvert --to png --png-dpi 300 molde.plt
-plotconvert --to png --png-max-size 512 desenho.dxf
-plotconvert desenho.svg -o preview.png
+plotconvert --to png drawing.dxf
+plotconvert --to png --png-dpi 300 pattern.plt
+plotconvert --to png --png-max-size 512 drawing.dxf
+plotconvert drawing.svg -o preview.png
 ```
 
-## Compilação
+## Building
 
 ```bash
 cargo build --release
 cargo test
 ```
 
-O binário Linux será criado em `target/release/plotconvert`. Para Windows,
-compile o mesmo projeto para o alvo `x86_64-pc-windows-gnu` ou use o
-workflow de release.
+The Linux binary is created at `target/release/plotconvert`. For Windows,
+build the same project for the `x86_64-pc-windows-gnu` target or use the
+release workflow.
 
-Os artefatos prontos são gerados em:
+Ready-made artifacts are produced at:
 
 ```text
 dist/plotconvert-linux-x86_64
 dist/plotconvert-windows-x86_64.exe
 ```
 
-## Licença
+## License
 
-Este projeto é distribuído sob a licença [MIT](LICENSE).
+This project is distributed under the [MIT](LICENSE) license.

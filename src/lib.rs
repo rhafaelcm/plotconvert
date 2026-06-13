@@ -273,7 +273,7 @@ pub fn detect_format(path: impl AsRef<Path>, data: &[u8]) -> Result<InputFormat,
         Ok(InputFormat::Hpgl)
     } else {
         Err(ConversionError::Parse(
-            "não foi possível detectar se a entrada é DXF, PLT ou SVG".into(),
+            "could not detect whether the input is DXF, PLT, or SVG".into(),
         ))
     }
 }
@@ -304,29 +304,29 @@ pub fn default_output(source: InputFormat) -> OutputFormat {
 fn validate_options(options: &ConversionOptions) -> Result<(), ConversionError> {
     if !options.units_per_mm.is_finite() || options.units_per_mm <= 0.0 {
         return Err(ConversionError::InvalidOption(
-            "escala HP-GL (--units-per-mm ou --units-per-inch) deve ser maior que zero"
+            "HP-GL scale (--units-per-mm or --units-per-inch) must be greater than zero"
                 .into(),
         ));
     }
     if !options.curve_tolerance_mm.is_finite() || options.curve_tolerance_mm <= 0.0 {
         return Err(ConversionError::InvalidOption(
-            "curve-tolerance-mm deve ser maior que zero".into(),
+            "curve-tolerance-mm must be greater than zero".into(),
         ));
     }
     if !options.png_dpi.is_finite() || options.png_dpi <= 0.0 {
         return Err(ConversionError::InvalidOption(
-            "png-dpi deve ser maior que zero".into(),
+            "png-dpi must be greater than zero".into(),
         ));
     }
     if !options.png_stroke_scale.is_finite() || options.png_stroke_scale <= 0.0 {
         return Err(ConversionError::InvalidOption(
-            "png-stroke-scale deve ser maior que zero".into(),
+            "png-stroke-scale must be greater than zero".into(),
         ));
     }
     if let Some(max_size) = options.png_max_size {
         if max_size == 0 {
             return Err(ConversionError::InvalidOption(
-                "png-max-size deve ser maior que zero".into(),
+                "png-max-size must be greater than zero".into(),
             ));
         }
     }
