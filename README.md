@@ -2,15 +2,20 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Conversor entre HP-GL/HP-GL2 (`.plt`), DXF ASCII e SVG, escrito em Rust.
+Conversor entre DXF ASCII, HP-GL/HP-GL2 (`.plt`, `.hpgl`) e SVG (`.svg`, `.svf`),
+escrito em Rust.
 
-Conversões disponíveis:
+O conversor suporta seis rotas de conversão cruzada:
 
-| Entrada | Saída |
+- **DXF** → PLT, SVG
+- **PLT/HP-GL** → DXF, SVG
+- **SVG/SVF** → DXF, PLT
+
+| Entrada | Saídas |
 | --- | --- |
-| DXF | SVG ou PLT |
-| PLT/HP-GL | DXF ou SVG |
-| SVG/SVF | DXF ou PLT |
+| DXF (`.dxf`) | PLT ou SVG |
+| PLT/HP-GL (`.plt`, `.hpgl`) | DXF ou SVG |
+| SVG/SVF (`.svg`, `.svf`) | DXF ou PLT |
 
 ## Uso
 
@@ -19,19 +24,26 @@ plotconvert desenho.plt
 plotconvert desenho.dxf
 plotconvert desenho.svg
 plotconvert --to svg desenho.dxf
+plotconvert --to svg desenho.plt
 plotconvert --to plt desenho.svg
-plotconvert --to hpgl desenho.dxf
+plotconvert --to dxf desenho.svg
 ```
 
 O formato da entrada é detectado pela extensão e, quando necessário, pelo
-conteúdo:
+conteúdo.
 
-- entrada `.plt` ou `.hpgl`: gera um arquivo `.dxf`;
-- entrada `.dxf`: gera um arquivo `.plt`.
-- entrada `.svg` ou `.svf`: gera um arquivo `.dxf`.
+**Conversões suportadas** — use `--to` ou a extensão informada em `--output`
+para escolher qualquer uma das seis rotas:
 
-Essas são apenas as saídas padrão. Use `--to` ou uma extensão em `--output`
-para escolher outra combinação.
+- DXF → PLT ou SVG;
+- PLT/HP-GL → DXF ou SVG;
+- SVG/SVF → DXF ou PLT.
+
+**Saída padrão** (sem `--to` nem extensão explícita em `--output`):
+
+- entrada `.plt` ou `.hpgl` → `.dxf`;
+- entrada `.dxf` → `.plt` (HP-GL/2);
+- entrada `.svg` ou `.svf` → `.dxf`.
 
 Sem `--output` ou `--output-dir`, o arquivo convertido é criado ao lado da
 entrada, com o mesmo nome-base e a nova extensão.
@@ -54,19 +66,22 @@ Valores aceitos:
 - `hpgl2`: gera PLT em HP-GL/2.
 
 ```bash
-# DXF para SVG
-plotconvert --to svg desenho.dxf
-
-# DXF para PLT HP-GL/2
+# DXF → PLT (HP-GL/2)
 plotconvert --to plt desenho.dxf
 
-# PLT para SVG
+# DXF → SVG
+plotconvert --to svg desenho.dxf
+
+# PLT → DXF
+plotconvert --to dxf desenho.plt
+
+# PLT → SVG
 plotconvert --to svg desenho.plt
 
-# SVG para DXF
+# SVG → DXF
 plotconvert --to dxf desenho.svg
 
-# SVG para HP-GL clássico
+# SVG → PLT (HP-GL clássico)
 plotconvert --to hpgl desenho.svg
 ```
 
@@ -83,7 +98,9 @@ o formato.
 plotconvert desenho.plt --output resultado.dxf
 plotconvert desenho.dxf -o resultado.plt
 plotconvert desenho.dxf -o resultado.svg
+plotconvert desenho.plt -o resultado.svg
 plotconvert desenho.svg -o resultado.dxf
+plotconvert desenho.svg -o resultado.plt
 ```
 
 Não pode ser combinado com `--output-dir`.
@@ -246,13 +263,9 @@ plotconvert -- -desenho.plt
 
 ## Exemplos
 
-Converter um PLT para DXF R12:
+### DXF → PLT
 
-```bash
-plotconvert molde.plt
-```
-
-Converter um DXF para HP-GL/2:
+Converter um DXF para HP-GL/2 (saída padrão):
 
 ```bash
 plotconvert molde.dxf
@@ -265,7 +278,53 @@ Converter um DXF para HP-GL clássico:
 plotconvert --plt-dialect hpgl molde.dxf
 ```
 
-Converter vários arquivos, inclusive em direções diferentes:
+### DXF → SVG
+
+```bash
+plotconvert --to svg molde.dxf
+```
+
+### PLT → DXF
+
+Converter um PLT para DXF R12 (saída padrão):
+
+```bash
+plotconvert molde.plt
+```
+
+Gerar um DXF simples, sem camadas por caneta:
+
+```bash
+plotconvert --single-layer molde.plt
+```
+
+### PLT → SVG
+
+```bash
+plotconvert --to svg molde.plt
+```
+
+### SVG → DXF
+
+Converter SVG para DXF (saída padrão):
+
+```bash
+plotconvert desenho.svg
+plotconvert --to dxf desenho.svg
+```
+
+Arquivos com extensão `.svf` também são aceitos como entrada SVG.
+
+### SVG → PLT
+
+```bash
+plotconvert --to plt desenho.svg
+plotconvert --to hpgl desenho.svf
+```
+
+### Opções comuns
+
+Converter vários arquivos em lote:
 
 ```bash
 plotconvert --to svg --output-dir convertidos molde.plt desenho.dxf bolso.dxf
@@ -277,38 +336,9 @@ Normalizar a origem, inverter Y e substituir uma saída existente:
 plotconvert --normalize-origin --flip-y --overwrite molde.dxf
 ```
 
-Gerar um DXF simples, sem camadas por caneta:
+## Entrada DXF
 
-```bash
-plotconvert --single-layer molde.plt
-```
-
-Converter DXF para SVG:
-
-```bash
-plotconvert --to svg molde.dxf
-```
-
-Converter PLT para SVG:
-
-```bash
-plotconvert --to svg molde.plt
-```
-
-Converter SVG para DXF:
-
-```bash
-plotconvert --to dxf desenho.svg
-```
-
-Converter SVG ou um arquivo com extensão `.svf` para PLT:
-
-```bash
-plotconvert --to plt desenho.svg
-plotconvert --to hpgl desenho.svf
-```
-
-## Conversão DXF para PLT
+Saídas possíveis: **PLT** (padrão) e **SVG**.
 
 O leitor aceita DXF ASCII R12, R14 e versões posteriores com estrutura por
 group codes. São convertidos:
@@ -326,13 +356,27 @@ DXFs sem unidade declarada são interpretados como milímetros.
 de `HATCH` também é ignorado; seus contornos originais continuam sendo
 convertidos. Use `--strict` para transformar entidades não suportadas em erro.
 
+### DXF → PLT
+
 O padrão de saída é HP-GL/2. Use `--plt-dialect hpgl` para gerar HP-GL
 clássico.
 
-## Conversão PLT para DXF
+### DXF → SVG
+
+`ELLIPSE` e `SPLINE` são aproximadas por segmentos quando necessário. A
+precisão é controlada por `--curve-tolerance-mm`. O SVG gerado utiliza
+dimensões em milímetros e preserva cores, larguras, canetas, textos, círculos,
+arcos e polylines.
+
+## Entrada PLT/HP-GL
+
+Saídas possíveis: **DXF** (padrão) e **SVG**.
 
 São aceitos HP-GL clássico e HP-GL/2, incluindo arquivos com comandos
-concatenados, preâmbulos PCL e coordenadas compactadas `PE`.
+concatenados, preâmbulos PCL e coordenadas compactadas `PE`. Arquivos com
+extensão `.hpgl` são tratados da mesma forma que `.plt`.
+
+### PLT → DXF
 
 O DXF gerado é ASCII R12 e usa milímetros. Por padrão:
 
@@ -342,7 +386,22 @@ O DXF gerado é ASCII R12 e usa milímetros. Por padrão:
 - trajetórias viram `POLYLINE`;
 - círculos, arcos e textos usam entidades DXF nativas quando possível.
 
-## Conversão SVG
+Use `--single-layer` para colocar todas as entidades na camada `0`.
+
+### PLT → SVG
+
+As coordenadas HP-GL são convertidas para milímetros conforme
+`--units-per-mm`. O escritor SVG preserva cores, larguras, canetas, textos,
+círculos, arcos e polylines.
+
+## Entrada SVG/SVF
+
+Saídas possíveis: **DXF** (padrão) e **PLT**.
+
+Arquivos com extensão `.svf` são aceitos como alias de SVG para compatibilidade
+com a grafia indicada, desde que o conteúdo seja XML SVG.
+
+### Leitura SVG
 
 O leitor SVG aceita unidades em `mm`, `cm`, `in`, `pt`, `pc` e pixels CSS a
 96 DPI. `width`, `height` e `viewBox` são usados para converter o desenho para
@@ -364,11 +423,15 @@ Curvas Bézier, arcos elípticos e elipses são aproximados por polylines quando
 o destino não oferece uma entidade equivalente. A precisão é controlada por
 `--curve-tolerance-mm`.
 
-O escritor SVG preserva cores, larguras, canetas, textos, círculos, arcos e
-polylines. O arquivo gerado utiliza dimensões em milímetros.
+### SVG → DXF
 
-Arquivos com extensão `.svf` são aceitos como alias de SVG para compatibilidade
-com a grafia indicada, desde que o conteúdo seja XML SVG.
+O DXF gerado é ASCII R12 e usa milímetros. Canetas e estilos de traço viram
+camadas `PEN_001`, `PEN_002`, etc., a menos que `--single-layer` seja usado.
+
+### SVG → PLT
+
+Curvas sem equivalente direto em HP-GL são aproximadas por trajetórias. O
+padrão de saída é HP-GL/2; use `--plt-dialect hpgl` para HP-GL clássico.
 
 ## Compilação
 
